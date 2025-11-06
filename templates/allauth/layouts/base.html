@@ -1,0 +1,43 @@
+{% extends 'cms/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block title %}
+  {% block head_title %}
+  {% endblock %}
+{% endblock %}
+
+{% block body_class %}login-page bg-body-secondary app-loaded{% endblock %}
+
+{% block app_wrapper %}
+<div class="login-box">
+  <div class="login-logo">
+    <a href="{% url 'cms:index' %}">
+      {% if publication.logo %}
+      <img src="{{ publication.logo.url }}" width="200px" alt="Logo">
+      {% else %}
+      <strong>Paca</strong>CMS
+      {% endif %}
+    </a>
+  </div>
+  <div class="card">
+    <div class="card-body login-card-body">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+      {% block content %}
+      {% endblock %}
+    </div>
+    {% block extra_body %}
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}

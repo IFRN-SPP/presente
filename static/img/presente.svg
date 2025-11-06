@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="560.32843"
+   height="160"
+   viewBox="0 0 560.32843 160"
+   role="img"
+   aria-label="Logo Presente!"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="presente.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.3823938"
+     inkscape:cx="260.41783"
+     inkscape:cy="39.062675"
+     inkscape:window-width="1900"
+     inkscape:window-height="1037"
+     inkscape:window-x="330"
+     inkscape:window-y="33"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g2" />
+  <!-- Background (transparent) -->
+  <defs
+     id="defs1">
+    <style
+       id="style1">
+      .name { font-family: &quot;Montserrat&quot;, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-weight: 700; font-size: 72px; fill: #111111; letter-spacing: -1px; }
+    </style>
+  </defs>
+  <!-- Icon: rounded square -->
+  <!-- IFRN-style green (approx): #007A33 -->
+  <!-- Checkmark (white) -->
+  <!-- Red circle as head (aprox IFRN accent red): #E03A2D -->
+  <g
+     id="g2">
+    <rect
+       x="0"
+       y="0"
+       width="160"
+       height="160"
+       rx="16"
+       ry="16"
+       fill="#007a33"
+       id="rect1"
+       style="fill:#2f9e41;fill-opacity:1"
+       inkscape:label="rect1" />
+    <path
+       d="M 29.113263,90.619558 71.481841,131.63715 130.88674,41.969729"
+       fill="none"
+       stroke="#ffffff"
+       stroke-width="20.0001"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       id="path1"
+       sodipodi:nodetypes="ccc"
+       style="stroke-width:22.6772;stroke-linecap:round;stroke-dasharray:none" />
+    <circle
+       cx="42.38409"
+       cy="43.107475"
+       r="22.5"
+       fill="#e03a2d"
+       id="circle1"
+       style="fill:#cd191e;fill-opacity:1;stroke-width:1" />
+  </g>
+  <!-- Text "Presente!" -->
+  <!-- Positioned to the right of the icon -->
+  <text
+     x="164.45384"
+     y="113.44676"
+     class="name"
+     id="text1"
+     style="font-size:85.3333px"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold'"
+       id="tspan1">presente!</tspan></text>
+</svg>
