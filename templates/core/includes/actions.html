@@ -1,0 +1,24 @@
+<div class="btn-group btn-group-sm" role="group">
+  {% if "view" in allowed_actions %}
+  <a href="{% url allowed_actions.view record.id %}" class="btn btn-outline-primary" title="Visualizar">
+    <i class="bi bi-eye-fill"></i>
+  </a>
+  {% endif %}
+  {% if "change" in allowed_actions %}
+  <a href="{% url allowed_actions.change record.id %}" class="btn btn-outline-secondary" title="Editar">
+    <i class="bi bi-pencil-fill"></i>
+  </a>
+  {% endif %}
+  {% if "delete" in allowed_actions %}
+  <button
+    hx-get="{% url allowed_actions.delete record.id %}"
+    hx-target=".modal-content"
+    hx-trigger="click"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+    class="btn btn-outline-danger"
+    title="Remover">
+    <i class="bi bi-trash-fill"></i>
+  </button>
+  {% endif %}
+</div>

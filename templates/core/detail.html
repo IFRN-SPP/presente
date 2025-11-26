@@ -1,0 +1,88 @@
+{% extends "core/list.html" %}
+
+{% block crumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+  <a href="{{ request.get_full_path }}">{{page_title}}</a>
+</li>
+{% endblock %}
+
+{% block app_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-info-circle"></i> {{ object|capfirst }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {% for field in fields %}
+            <div class="col-md-6 mb-3">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">{{ field.label|capfirst }}</label>
+                <div class="detail-value">
+                  {% if field.safe %}
+                    {{ field.value|safe }}
+                  {% else %}
+                    {% if field.value %}
+                      {{ field.value }}
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-footer bg-light">
+          <div class="d-flex justify-content-between">
+            <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <div>
+              {% if "change" in allowed_actions %}
+              <a href="{% url allowed_actions.change object.id %}" class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i> Editar
+              </a>
+              {% endif %}
+              {% if "delete" in allowed_actions %}
+              <button
+                hx-get="{% url allowed_actions.delete object.id %}"
+                hx-target=".modal-content"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#modals-here"
+                class="btn btn-danger">
+                <i class="bi bi-trash"></i> Remover
+              </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.detail-field {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-field label {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 1rem;
+  padding-top: 0.25rem;
+}
+</style>
+{% endblock %}

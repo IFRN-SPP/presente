@@ -1,7 +1,41 @@
 from django.urls import path
-from .views import IndexView
+from . import views
 
 app_name = "presente"
 urlpatterns = [
-    path("", IndexView.as_view(), name="index"),
+    path("", views.IndexView.as_view(), name="index"),
+    path("event/", views.EventListView.as_view(), name="event_list"),
+    path("event/add", views.EventCreateView.as_view(), name="event_add"),
+    path("event/<int:pk>/", views.EventDetailView.as_view(), name="event_view"),
+    path("event/<int:pk>/edit/", views.EventUpdateView.as_view(), name="event_change"),
+    path(
+        "event/<int:pk>/delete/", views.EventDeleteView.as_view(), name="event_delete"
+    ),
+    path("activity/", views.ActivityListView.as_view(), name="activity_list"),
+    path("activity/add", views.ActivityCreateView.as_view(), name="activity_add"),
+    path(
+        "activity/<int:pk>/", views.ActivityDetailView.as_view(), name="activity_view"
+    ),
+    path(
+        "activity/<int:pk>/update/",
+        views.ActivityUpdateView.as_view(),
+        name="activity_change",
+    ),
+    path(
+        "activity/<int:pk>/delete/",
+        views.ActivityDeleteView.as_view(),
+        name="activity_delete",
+    ),
+    # User attendances
+    path("my-attendances/", views.MyAttendancesView.as_view(), name="my_attendances"),
+    # Public attendance URLs
+    path(
+        "a/<str:encoded_id>/",
+        views.PublicActivityView.as_view(),
+        name="public_activity",
+    ),
+    path(
+        "a/<str:encoded_id>/qr/", views.ActivityQRCodeView.as_view(), name="activity_qr"
+    ),
+    path("checkin/<str:token>/", views.CheckInView.as_view(), name="checkin"),
 ]

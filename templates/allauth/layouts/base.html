@@ -1,4 +1,4 @@
-{% extends 'cms/base.html' %}
+{% extends 'presente/base.html' %}
 {% load static %}
 
 {% block extra_head %}
@@ -15,11 +15,11 @@
 {% block app_wrapper %}
 <div class="login-box">
   <div class="login-logo">
-    <a href="{% url 'cms:index' %}">
+    <a href="{% url 'presente:index' %}">
       {% if publication.logo %}
       <img src="{{ publication.logo.url }}" width="200px" alt="Logo">
       {% else %}
-      <strong>Paca</strong>CMS
+      <strong>Presente!</strong>
       {% endif %}
     </a>
   </div>

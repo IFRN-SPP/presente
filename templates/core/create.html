@@ -1,0 +1,50 @@
+{% extends "core/list.html" %}
+{% load crispy_forms_tags %}
+
+{% block extra_head %}
+{{ form.media }}
+{% endblock %}
+
+{% block crumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+  <a href="{{ request.get_full_path }}">{{page_title}}</a>
+</li>
+{% endblock %}
+
+{% block app_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-plus-circle"></i> Novo Registro
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form|crispy}}
+          </form>
+        </div>
+        <div class="card-footer bg-light">
+          <div class="d-flex justify-content-between">
+            <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" form="id_form" class="btn btn-primary">
+              <i class="bi bi-save"></i> Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Add id to form for footer button
+document.querySelector('form').id = 'id_form';
+</script>
+{% endblock %}

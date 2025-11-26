@@ -1,0 +1,40 @@
+/* Custom styling for django-tables2 - AdminLTE4 compatible */
+
+/* Sortable column styling */
+.table thead th a {
+    color: inherit;
+    transition: color 0.15s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.table thead th a:hover {
+    color: var(--bs-primary);
+}
+
+.table thead th a:hover i.opacity-50 {
+    opacity: 0.75 !important;
+}
+
+/* Sort icons */
+.table thead th a i {
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+/* Card table styling */
+.card .table {
+    margin-bottom: 0;
+}
+
+.card .table thead th {
+    border-top: none;
+}
+
+/* Actions column width */
+.table td:last-child,
+.table th:last-child {
+    width: 1%;
+    white-space: nowrap;
+}

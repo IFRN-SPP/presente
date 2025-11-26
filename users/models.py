@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
 
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, blank=True, null=True)
+    email = models.EmailField(_("email address"), unique=True)
+    username = models.CharField(_("username"), max_length=150, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -13,8 +14,8 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     class Meta:
-        verbose_name = "Usuário"
-        verbose_name_plural = "Usuários"
+        verbose_name = _("Usuário")
+        verbose_name_plural = _("Usuários")
 
     def save(self, *args, **kwargs):
         if not self.username:

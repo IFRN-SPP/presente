@@ -1,0 +1,28 @@
+<div id="qr-code-container"
+     hx-get="{% url 'presente:activity_qr' encoded_id %}"
+     hx-trigger="load delay:{{ timeout }}s"
+     hx-swap="outerHTML">
+  <div class="text-center">
+    <div id="qrcode" class="mb-3"></div>
+    <p class="text-muted small">
+      <i class="bi bi-clock"></i> Código válido por {{ timeout }} segundos
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const qrcodeDiv = document.getElementById("qrcode");
+  if (qrcodeDiv && !qrcodeDiv.hasChildNodes()) {
+    new QRCode(qrcodeDiv, {
+      text: "{{ checkin_url }}",
+      width: 256,
+      height: 256,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+  }
+});
+</script>

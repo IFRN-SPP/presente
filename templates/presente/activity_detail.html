@@ -1,0 +1,88 @@
+{% extends "core/detail.html" %}
+
+{% block app_content %}
+{{ block.super }}
+
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-qr-code"></i> Link Público</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Compartilhe este link para que os participantes possam registrar presença:</strong></p>
+          <div class="input-group">
+            <input type="text" class="form-control" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'presente:public_activity' encoded_id %}" id="publicLink">
+            <button class="btn btn-outline-secondary" type="button" onclick="copyPublicLink()">
+              <i class="bi bi-clipboard"></i> Copiar
+            </button>
+          </div>
+          <small class="text-muted">Os participantes poderão acessar este link e escanear o QR Code para registrar presença.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-people"></i> Lista de Presenças</h5>
+          <span class="badge bg-light text-dark">{{ attendances|length }} participante{{ attendances|length|pluralize }}</span>
+        </div>
+        <div class="card-body p-0">
+          {% if attendances %}
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Data/Hora do Check-in</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for attendance in attendances %}
+                <tr>
+                  <td>{{ attendance.user.get_full_name|default:"-" }}</td>
+                  <td>{{ attendance.user.email }}</td>
+                  <td>{{ attendance.checked_in_at|date:"d/m/Y H:i:s" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="mt-2">Nenhuma presença registrada ainda</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyPublicLink() {
+  const input = document.getElementById('publicLink');
+  input.select();
+  input.setSelectionRange(0, 99999); // For mobile devices
+  navigator.clipboard.writeText(input.value);
+
+  const button = event.target.closest('button');
+  const originalHTML = button.innerHTML;
+  button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
+  button.classList.remove('btn-outline-secondary');
+  button.classList.add('btn-success');
+
+  setTimeout(() => {
+    button.innerHTML = originalHTML;
+    button.classList.remove('btn-success');
+    button.classList.add('btn-outline-secondary');
+  }, 2000);
+}
+</script>
+{% endblock %}

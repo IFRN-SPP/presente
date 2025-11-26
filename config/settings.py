@@ -44,10 +44,12 @@ THIRD_PARTY_APPS = [
     "django_htmx",
     "simple_menu",
     "django_tables2",
+    "django_filters",
 ]
 
 LOCAL_APPS = [
     "users",
+    "core",
     "presente",
 ]
 
@@ -150,6 +152,15 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Datetime input formats for forms
+DATETIME_INPUT_FORMATS = [
+    "%Y-%m-%dT%H:%M",  # HTML5 datetime-local format
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d %H:%M",
+    "%d/%m/%Y %H:%M:%S",
+    "%d/%m/%Y %H:%M",
+]
+
 
 # Static files (CSS, JavaScript, Images)
 
@@ -228,7 +239,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MENU_SELECT_PARENTS = True
 
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
 DJANGO_TABLES2_TABLE_ATTRS = {
-    "class": "table table-striped table-hover",
+    "class": "table table-striped",
 }

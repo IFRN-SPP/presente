@@ -10,6 +10,7 @@ Django==5.2.7
 django-allauth==65.11.2
 django-allauth-suap==0.1.2
 django-crispy-forms==2.4
+django-filter==25.2
 django-htmx==1.26.0
 django-simple-menu==2.1.4
 django-tables2==2.7.5

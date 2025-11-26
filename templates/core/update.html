@@ -1,0 +1,61 @@
+{% extends "core/list.html" %}
+{% load crispy_forms_tags %}
+
+{% block extra_head %}
+{{ form.media }}
+{% endblock %}
+
+{% block crumb %}
+{{ block.super }}
+<li class="breadcrumb-item">
+  <a href="{{ request.get_full_path }}">{{page_title}}</a>
+</li>
+{% endblock %}
+
+{% block app_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="bi bi-pencil"></i> Editar Registro
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            {{form|crispy}}
+            {% if formset %}
+            <hr class="my-4">
+            <h6 class="text-muted text-uppercase mb-3">
+              <i class="bi bi-collection"></i> Itens Relacionados
+            </h6>
+            {% for form_inline in formset  %}
+              {{form_inline|crispy}}
+              {% if not forloop.last %}<hr>{% endif %}
+            {% endfor %}
+            {% endif %}
+          </form>
+        </div>
+        <div class="card-footer bg-light">
+          <div class="d-flex justify-content-between">
+            <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
+              <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <button type="submit" form="id_form" class="btn btn-primary">
+              <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Add id to form for footer button
+document.querySelector('form').id = 'id_form';
+</script>
+{% endblock %}

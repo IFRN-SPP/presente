@@ -1,1 +1,70 @@
-{% extends "presente/base.html" %}
+{% extends "presente/private_base.html" %}
+
+{% block app_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-3 col-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted text-uppercase mb-2">Eventos</h6>
+              <h2 class="mb-0">{{ events }}</h2>
+            </div>
+            <div class="text-primary" style="font-size: 3rem;">
+              <i class="bi bi-calendar-event"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-light">
+          <a href="{% url 'presente:event_list' %}" class="small text-decoration-none">
+            Ver todos <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="text-muted text-uppercase mb-2">Atividades</h6>
+              <h2 class="mb-0">{{ activities }}</h2>
+            </div>
+            <div class="text-success" style="font-size: 3rem;">
+              <i class="bi bi-list-check"></i>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-light">
+          <a href="{% url 'presente:activity_list' %}" class="small text-decoration-none">
+            Ver todas <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-info-circle"></i> Bem-vindo ao Sistema de Presença
+          </h5>
+        </div>
+        <div class="card-body">
+          <h6>Como funciona:</h6>
+          <ul class="mb-0">
+            <li><strong>Eventos:</strong> Crie eventos para organizar suas atividades</li>
+            <li><strong>Atividades:</strong> Cadastre atividades com data/hora e tempo de QR Code</li>
+            <li><strong>QR Code:</strong> Compartilhe o link público para que participantes registrem presença</li>
+            <li><strong>Presenças:</strong> Acompanhe quem participou de cada atividade</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
