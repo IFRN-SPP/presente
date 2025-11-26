@@ -6,6 +6,14 @@ User = get_user_model()
 
 
 class Event(models.Model):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="owned_events",
+        verbose_name=_("owner"),
+        null=True,
+        blank=True,
+    )
     name = models.CharField(_("name"), max_length=100)
     description = models.TextField(_("description"))
     is_published = models.BooleanField(default=False)
@@ -19,6 +27,14 @@ class Event(models.Model):
 
 
 class Activity(models.Model):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="owned_activities",
+        verbose_name=_("owner"),
+        null=True,
+        blank=True,
+    )
     event = models.ForeignKey(
         Event,
         on_delete=models.SET_NULL,

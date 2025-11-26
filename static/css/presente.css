@@ -1,0 +1,180 @@
+/* Breadcrumb improvements */
+.breadcrumb {
+  font-size: 0.875rem;
+}
+.breadcrumb-item + .breadcrumb-item::before {
+  color: #6c757d;
+  opacity: 0.5;
+}
+.breadcrumb-item a {
+  color: #495057;
+  transition: color 0.15s ease-in-out;
+}
+.breadcrumb-item a:hover {
+  color: #0d6efd;
+}
+.breadcrumb-item.active {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Compact card headers - AdminLTE4 style */
+.card-header h5 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+.card-header {
+  padding: 0.5rem 1rem;
+  min-height: auto;
+}
+.card-header .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Detail field styling */
+.detail-field {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-field:last-child {
+  border-bottom: none;
+}
+
+.detail-field label {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 1rem;
+  padding-top: 0.25rem;
+}
+
+/* Public Activity Page - Fullscreen QR Code Display */
+.public-activity-page body {
+  overflow: hidden;
+}
+.fullscreen-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+.activity-card {
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.activity-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+}
+.activity-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+.activity-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  justify-content: space-around;
+}
+.event-info {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+.time-info {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 1.5rem;
+}
+.time-block {
+  text-align: center;
+  padding: 1rem 2rem;
+  background: #f8f9fa;
+  border-radius: 1rem;
+  min-width: 250px;
+}
+.time-label {
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+.time-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+.qr-section {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.qr-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+}
+.qr-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+.instructions {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #555;
+}
+.instruction-item i {
+  font-size: 1.5rem;
+  color: #667eea;
+}
+
+/* Responsive adjustments for public activity page */
+@media (max-height: 900px) {
+  .activity-header h1 { font-size: 2rem; }
+  .qr-title { font-size: 1.5rem; }
+  .qr-subtitle { font-size: 1rem; }
+  .time-value { font-size: 1.2rem; }
+  .instruction-item { font-size: 1rem; }
+  .activity-body { padding: 1.5rem; }
+}
+@media (max-height: 768px) {
+  .fullscreen-container { padding: 1rem; }
+  .activity-header { padding: 1rem; }
+  .activity-header h1 { font-size: 1.8rem; }
+  .activity-body { padding: 1rem; }
+  .qr-title { font-size: 1.3rem; }
+  .time-block { padding: 0.8rem 1.5rem; min-width: 200px; }
+  .instructions { margin-top: 1rem; gap: 1rem; }
+}

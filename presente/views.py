@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
 from django.http import Http404
+from django.urls import reverse
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin
 from core.mixins import PageTitleMixin, AutoPermissionRequiredMixin, AllowedActionsMixin
@@ -16,9 +17,9 @@ from core.views import (
     CoreDeleteView,
 )
 from .models import Event, Activity, Attendance
-from .tables import EventTable, ActivityTable
+from .tables import EventTable, ActivityTable, AttendanceTable
 from .forms import EventForm, ActivityForm
-from .filters import EventFilter, ActivityFilter
+from .filters import EventFilter, ActivityFilter, AttendanceFilter
 from .utils import (
     encode_activity_id,
     decode_activity_id,
@@ -35,8 +36,16 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["events"] = Event.objects.filter(is_published=True).count()
-        context["activities"] = Activity.objects.filter(is_published=True).count()
+        context["events"] = Event.objects.filter(owner=self.request.user).count()
+        context["activities"] = Activity.objects.filter(owner=self.request.user).count()
+        context["my_attendances_count"] = Attendance.objects.filter(
+            user=self.request.user
+        ).count()
+        context["recent_attendances"] = (
+            Attendance.objects.filter(user=self.request.user)
+            .select_related("activity", "activity__event")
+            .order_by("-checked_in_at")[:5]
+        )
         return context
 
 
@@ -55,16 +64,26 @@ class EventListView(
     template_name = "core/list.html"
     permission_action = "view"
 
+    def get_queryset(self):
+        return Event.objects.filter(owner=self.request.user)
+
 
 class EventCreateView(CoreCreateView):
     page_title = _("Eventos")
     model = Event
     form_class = EventForm
 
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
 
 class EventDetailView(CoreDetailView):
     page_title = _("Eventos")
     model = Event
+
+    def get_queryset(self):
+        return Event.objects.filter(owner=self.request.user)
 
 
 class EventUpdateView(CoreUpdateView):
@@ -72,9 +91,15 @@ class EventUpdateView(CoreUpdateView):
     model = Event
     form_class = EventForm
 
+    def get_queryset(self):
+        return Event.objects.filter(owner=self.request.user)
+
 
 class EventDeleteView(CoreDeleteView):
     model = Event
+
+    def get_queryset(self):
+        return Event.objects.filter(owner=self.request.user)
 
 
 class ActivityListView(
@@ -92,17 +117,27 @@ class ActivityListView(
     template_name = "core/list.html"
     permission_action = "view"
 
+    def get_queryset(self):
+        return Activity.objects.filter(owner=self.request.user)
+
 
 class ActivityCreateView(CoreCreateView):
     model = Activity
     page_title = _("Atividades")
     form_class = ActivityForm
 
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
 
 class ActivityDetailView(CoreDetailView):
     model = Activity
     page_title = _("Atividades")
     template_name = "presente/activity_detail.html"
+
+    def get_queryset(self):
+        return Activity.objects.filter(owner=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -116,9 +151,15 @@ class ActivityUpdateView(CoreUpdateView):
     page_title = _("Atividades")
     form_class = ActivityForm
 
+    def get_queryset(self):
+        return Activity.objects.filter(owner=self.request.user)
+
 
 class ActivityDeleteView(CoreDeleteView):
     model = Activity
+
+    def get_queryset(self):
+        return Activity.objects.filter(owner=self.request.user)
 
 
 # Public views for attendance
@@ -156,7 +197,8 @@ class ActivityQRCodeView(View):
 
         activity = get_object_or_404(Activity, id=activity_id, is_published=True)
         checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
-        checkin_url = request.build_absolute_uri(f"/presente/checkin/{checkin_token}/")
+        checkin_path = reverse("presente:checkin", kwargs={"token": checkin_token})
+        checkin_url = request.build_absolute_uri(checkin_path)
 
         return render(
             request,
@@ -165,6 +207,7 @@ class ActivityQRCodeView(View):
                 "checkin_url": checkin_url,
                 "activity": activity,
                 "timeout": activity.qr_timeout,
+                "encoded_id": encoded_id,
             },
         )
 
@@ -195,6 +238,7 @@ class CheckInView(LoginRequiredMixin, View):
                 {
                     "error": _("QR Code expirado. Solicite um novo código."),
                     "activity": activity,
+                    "encoded_id": encode_activity_id(activity.id),
                 },
             )
 
@@ -219,17 +263,24 @@ class CheckInView(LoginRequiredMixin, View):
         )
 
 
-class MyAttendancesView(LoginRequiredMixin, PageTitleMixin, TemplateView):
+class MyAttendancesView(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    SingleTableMixin,
+    FilterView,
+):
     """View showing the current user's attendances"""
 
-    template_name = "presente/my_attendances.html"
     page_title = _("Minhas Presenças")
+    model = Attendance
+    table_class = AttendanceTable
+    filterset_class = AttendanceFilter
+    template_name = "core/list.html"
+    paginate_by = 20
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["attendances"] = (
+    def get_queryset(self):
+        return (
             Attendance.objects.filter(user=self.request.user)
             .select_related("activity", "activity__event")
             .order_by("-checked_in_at")
         )
-        return context

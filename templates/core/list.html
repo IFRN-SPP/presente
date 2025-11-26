@@ -1,5 +1,6 @@
 {% extends "presente/private_base.html" %}
 {% load render_table from django_tables2 %}
+{% load filter_tags %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
@@ -7,9 +8,7 @@
 
 {% block crumb %}
 {{ block.super }}
-<li class="breadcrumb-item">
-  <a href="{{ request.get_full_path }}">{{page_title}}</a>
-</li>
+<li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
 {% endblock %}
 
 {% block app_content %}
@@ -17,9 +16,10 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       {% if filter %}
-      <button class="btn {% if filter.is_bound and filter.data %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" {% if filter.is_bound and filter.data %}aria-expanded="true"{% endif %}>
-        <i class="bi bi-funnel{% if filter.is_bound and filter.data %}-fill{% endif %}"></i> Filtros
-        {% if filter.is_bound and filter.data %}
+      {% has_active_filters filter as filters_active %}
+      <button class="btn {% if filters_active %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" {% if filters_active %}aria-expanded="true"{% endif %}>
+        <i class="bi bi-funnel{% if filters_active %}-fill{% endif %}"></i> Filtros
+        {% if filters_active %}
         <span class="badge bg-light text-dark ms-1">{{ filter.qs.count }}</span>
         {% endif %}
       </button>
@@ -35,7 +35,8 @@
   </div>
 
   {% if filter %}
-  <div class="collapse {% if filter.is_bound and filter.data %}show{% endif %} mb-3" id="filterCollapse">
+  {% has_active_filters filter as filters_active %}
+  <div class="collapse {% if filters_active %}show{% endif %} mb-3" id="filterCollapse">
     <div class="card">
       <div class="card-body">
         <form method="get" class="row g-3">

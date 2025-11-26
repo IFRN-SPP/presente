@@ -4,20 +4,39 @@
 {% block crumb %}
 {{ block.super }}
 <li class="breadcrumb-item">
-  <a href="{{ request.get_full_path }}">{{page_title}}</a>
+  <a href="{% url 'users:user_profile' %}" class="text-decoration-none">{{ page_title }}</a>
 </li>
+<li class="breadcrumb-item active" aria-current="page">Editar</li>
 {% endblock %}
 
 {% block app_content %}
-<div class="container">
-  <h2 class="mb-4">{{ user|capfirst }}</h2>
-  <form action="" method="post">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <div class="d-flex justify-content-between mt-3">
-      <a href="{% url 'users:user_profile' %}" class="btn btn-secondary">Voltar</a>
-      <button type="submit" class="btn btn-primary">Atualizar</button>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-pencil-square"></i> Editar Perfil
+          </h5>
+        </div>
+        <form action="" method="post">
+          {% csrf_token %}
+          <div class="card-body">
+            {{ form|crispy }}
+          </div>
+          <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+              <a href="{% url 'users:user_profile' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Salvar Alterações
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-  </form>
+  </div>
 </div>
 {% endblock %}

@@ -15,12 +15,9 @@
 {% block app_wrapper %}
 <div class="login-box">
   <div class="login-logo">
-    <a href="{% url 'presente:index' %}">
-      {% if publication.logo %}
-      <img src="{{ publication.logo.url }}" width="200px" alt="Logo">
-      {% else %}
-      <strong>Presente!</strong>
-      {% endif %}
+    <a href="{% url 'presente:index' %}" class="d-flex align-items-center justify-content-center text-decoration-none">
+      <img src="{% static 'img/presente-icon.svg' %}" width="80px" alt="Presente Icon" class="me-2">
+      <span style="font-size: 2.5rem; font-weight: 700; color: #111111;">presente!</span>
     </a>
   </div>
   <div class="card">

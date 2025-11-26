@@ -1,10 +1,15 @@
 {% extends "core/list.html" %}
 
 {% block crumb %}
-{{ block.super }}
 <li class="breadcrumb-item">
-  <a href="{{ request.get_full_path }}">{{page_title}}</a>
+  <a href="{% url 'presente:index' %}" class="text-decoration-none">
+    <i class="bi bi-house-door"></i> Início
+  </a>
 </li>
+<li class="breadcrumb-item">
+  <a href="{% url allowed_actions.list %}" class="text-decoration-none">{{ page_title }}</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ object }}</li>
 {% endblock %}
 
 {% block app_content %}
@@ -68,21 +73,4 @@
     </div>
   </div>
 </div>
-
-<style>
-.detail-field {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.detail-field label {
-  font-weight: 600;
-  letter-spacing: 0.05em;
-}
-
-.detail-value {
-  font-size: 1rem;
-  padding-top: 0.25rem;
-}
-</style>
 {% endblock %}

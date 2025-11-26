@@ -1,75 +1,92 @@
-{% extends "account/base_manage.html" %}
+{% extends "presente/private_base.html" %}
 {% load i18n allauth crispy_forms_tags %}
 
-{% block title %}
-    {% trans "Email Address" %}
-{% endblock title %}
-{% block page_title %}
-    {% trans "Email Address" %}
-{% endblock page_title %}
-{% block extrahead %}
-  {{ block.super }}
-  {{ form.media.css }}
-{% endblock extrahead %}
+{% block title %}{% trans "Email Address" %}{% endblock %}
+{% block page_title %}{% trans "Alterar Email" %}{% endblock %}
 
-{% block content %}
-    <form method="post"
-          id="change-form"
-          enctype="multipart/form-data"
-          novalidate>
-      {% block form_content %}
-        <div class="card shadow-none">
+{% block crumb %}
+{{ block.super }}
+<li class="breadcrumb-item active" aria-current="page">{% trans "Alterar Email" %}</li>
+{% endblock %}
+
+{% block app_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-envelope-at"></i> {% trans "Alterar Email" %}
+          </h5>
+        </div>
+        <form method="post" id="change-form">
+          {% csrf_token %}
           <div class="card-body">
-            <div class="d-flex flex-column flex-fill">
-                {% csrf_token %}
-                {% if form.non_field_errors %}
-                  {% for error in form.non_field_errors  %}
-                    <small class="text-danger mb-3">{{ error }}</small>
-                  {% endfor %}
-                {% endif %}
-                {% if new_emailaddress %}
-                  <div class="d-flex flex-column flex-fill">
-                    <label for="new_mail">{% translate 'Current email' %}:</label>
-                    <input type="email" name="email" id="new_email" value={{ new_emailaddress.email }} disabled class="form-control">
-                    <div class="form-text">
-                      {% blocktranslate %}Your email address is still pending verification.{% endblocktranslate %}
-                      <button form="pending-email" type="submit" name="action_send" class="btn btn-link btn-sm">{% trans "Re-send Verification" %}</button>
-                      {% if current_emailaddress %}
-                      <button form="pending-email" type="submit" name="action_remove" class="btn btn-link btn-sm">{% trans "Cancel Change" %}</button>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endif %}
-                <label for="new_mail">{% translate 'Current email' %}:</label>
-                <input type="email" name="email" id="new_email" value="{{ request.user.email }}" disabled class="form-control">
-                <label for="{{form.email.auto_id}}">{% translate 'Change to' %}:</label>
-                  <input type="email" name="email" id="{{form.email.auto_id}}" class="form-control">
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if new_emailaddress %}
+              <div class="alert alert-warning">
+                <h6 class="alert-heading">
+                  <i class="bi bi-exclamation-triangle"></i> {% translate "Verificação Pendente" %}
+                </h6>
+                <p class="mb-2">{% blocktranslate %}Seu endereço de email ainda está pendente de verificação.{% endblocktranslate %}</p>
+                <div class="d-flex gap-2">
+                  <button form="pending-email" type="submit" name="action_send" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-send"></i> {% trans "Reenviar Verificação" %}
+                  </button>
+                  {% if current_emailaddress %}
+                  <button form="pending-email" type="submit" name="action_remove" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> {% trans "Cancelar Alteração" %}
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-muted small text-uppercase">{% translate "Email Pendente" %}:</label>
+                <input type="email" value="{{ new_emailaddress.email }}" disabled class="form-control">
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label text-muted small text-uppercase">{% translate "Email Atual" %}:</label>
+              <input type="email" value="{{ request.user.email }}" disabled class="form-control">
+            </div>
+
+            <div class="mb-3">
+              <label for="{{form.email.auto_id}}" class="form-label">{% translate "Novo Email" %}:</label>
+              <input type="email" name="email" id="{{form.email.auto_id}}" class="form-control" required>
+              {% if form.email.errors %}
+                <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+              {% endif %}
             </div>
           </div>
-          <div class="card-foot pb-3 px-3">
-            <a class="btn btn-outline-primary ms-2"
-              href="{{ view.get_success_url }}">Cancelar</a>
-            <button type="submit" class="btn btn-primary ms-2">{% trans "Change Email" %}</button>
+          <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+              <a class="btn btn-secondary" href="{% url 'presente:index' %}">
+                <i class="bi bi-x-circle"></i> Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> {% trans "Alterar Email" %}
+              </button>
+            </div>
           </div>
-        </div>
-
-      {% endblock form_content %}
-      
-    </form>
-    {% if new_emailaddress %}
-        <form style="display: none"
-              id="pending-email"
-              method="post"
-              action="{% url 'account_email' %}">
-            {% csrf_token %}
-            <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
         </form>
-    {% endif %}
-{% endblock content %}
-{% block extra_scripts %}
-  {{ block.super }}
-  {{ form.media.js }}
-{% endblock extra_scripts %}
+      </div>
+    </div>
+  </div>
+</div>
 
-{% block preloader %}
-{% endblock preloader %}
+{% if new_emailaddress %}
+<form style="display: none" id="pending-email" method="post" action="{% url 'account_email' %}">
+  {% csrf_token %}
+  <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
+</form>
+{% endif %}
+{% endblock %}

@@ -1,12 +1,12 @@
-from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.core.signing import Signer, TimestampSigner, BadSignature, SignatureExpired
 
 
 def encode_activity_id(activity_id):
     """
     Encode activity ID to a hash for public URLs.
     """
-    signer = TimestampSigner(salt="activity-public")
-    return signer.sign(str(activity_id)).split(":")[0]
+    signer = Signer(salt="activity-public")
+    return signer.sign(str(activity_id))
 
 
 def decode_activity_id(encoded_id):
@@ -15,15 +15,10 @@ def decode_activity_id(encoded_id):
     Returns None if invalid.
     """
     try:
-        # Try to find the activity by matching the first part of signed value
-        from .models import Activity
-
-        for activity in Activity.objects.filter(is_published=True):
-            encoded = encode_activity_id(activity.id)
-            if encoded == encoded_id:
-                return activity.id
-        return None
-    except Exception:
+        signer = Signer(salt="activity-public")
+        activity_id = signer.unsign(encoded_id)
+        return int(activity_id)
+    except (BadSignature, ValueError):
         return None
 
 

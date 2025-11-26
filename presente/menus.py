@@ -11,6 +11,15 @@ Menu.add_item(
     ),
 )
 
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Minhas Presenças",
+        reverse("presente:my_attendances"),
+        icon="bi bi-check2-circle",
+    ),
+)
+
 # submenu_items = [
 #     MenuItem("Informações", reverse("cms:publication_detail"), icon="bi bi-circle"),
 #     MenuItem(

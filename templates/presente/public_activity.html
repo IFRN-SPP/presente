@@ -3,59 +3,62 @@
 
 {% block title %}{{ activity.title }}{% endblock %}
 
-{% block body_class %}{% endblock %}
+{% block body_class %}public-activity-page{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+{% endblock %}
 
 {% block app_wrapper %}
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-          <h3 class="mb-0">
-            <i class="bi bi-calendar-event"></i> {{ activity.title }}
-          </h3>
+<div class="fullscreen-container">
+  <div class="activity-card">
+    <div class="activity-header">
+      <h1><i class="bi bi-calendar-event"></i> {{ activity.title }}</h1>
+    </div>
+
+    <div class="activity-body">
+      {% if activity.event %}
+      <div class="event-info">
+        <i class="bi bi-folder"></i> {{ activity.event.name }}
+      </div>
+      {% endif %}
+
+      <div class="time-info">
+        <div class="time-block">
+          <div class="time-label"><i class="bi bi-clock"></i> Início</div>
+          <div class="time-value">{{ activity.start_time|date:"d/m/Y H:i" }}</div>
         </div>
-        <div class="card-body">
-          {% if activity.event %}
-          <p class="text-muted">
-            <i class="bi bi-folder"></i> <strong>Evento:</strong> {{ activity.event.name }}
-          </p>
-          {% endif %}
+        <div class="time-block">
+          <div class="time-label"><i class="bi bi-clock-fill"></i> Término</div>
+          <div class="time-value">{{ activity.end_time|date:"d/m/Y H:i" }}</div>
+        </div>
+      </div>
 
-          <p>
-            <i class="bi bi-clock"></i> <strong>Início:</strong> {{ activity.start_time|date:"d/m/Y H:i" }}
-          </p>
-          <p>
-            <i class="bi bi-clock-fill"></i> <strong>Término:</strong> {{ activity.end_time|date:"d/m/Y H:i" }}
-          </p>
+      <div class="qr-section">
+        <div class="qr-title">Registrar Presença</div>
+        <div class="qr-subtitle">Escaneie o QR Code para registrar sua presença</div>
 
-          <hr>
-
-          <div class="text-center">
-            <h4 class="mb-3">Registrar Presença</h4>
-            <p class="text-muted">Escaneie o QR Code abaixo para registrar sua presença</p>
-
-            <div id="qr-code-container"
-                 hx-get="{% url 'presente:activity_qr' encoded_id %}"
-                 hx-trigger="load"
-                 hx-swap="innerHTML">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Carregando...</span>
-              </div>
-            </div>
+        <div id="qr-code-container"
+             hx-get="{% url 'presente:activity_qr' encoded_id %}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
           </div>
+        </div>
 
-          <hr>
-
-          <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i>
-            <strong>Como funciona:</strong>
-            <ul class="mb-0 mt-2">
-              <li>Escaneie o QR Code com seu celular</li>
-              <li>Faça login caso necessário</li>
-              <li>Sua presença será registrada automaticamente</li>
-              <li>O QR Code é renovado a cada {{ activity.qr_timeout }} segundos</li>
-            </ul>
+        <div class="instructions">
+          <div class="instruction-item">
+            <i class="bi bi-phone"></i>
+            <span>Escaneie com seu celular</span>
+          </div>
+          <div class="instruction-item">
+            <i class="bi bi-person-check"></i>
+            <span>Faça login</span>
+          </div>
+          <div class="instruction-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Presença registrada!</span>
           </div>
         </div>
       </div>

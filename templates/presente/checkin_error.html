@@ -25,8 +25,8 @@
           {% endif %}
 
           <div class="mt-4">
-            {% if activity %}
-            <a href="{% url 'presente:public_activity' activity.id|hash %}" class="btn btn-primary me-2">
+            {% if encoded_id %}
+            <a href="{% url 'presente:public_activity' encoded_id %}" class="btn btn-primary me-2">
               <i class="bi bi-arrow-clockwise"></i> Tentar Novamente
             </a>
             {% endif %}
