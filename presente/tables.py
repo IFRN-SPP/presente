@@ -1,6 +1,6 @@
 import django_tables2
 from django.utils.translation import gettext_lazy as _
-from .models import Event, Activity, Attendance
+from .models import Activity, Attendance
 
 
 class CoreTable(django_tables2.Table):
@@ -12,16 +12,17 @@ class CoreTable(django_tables2.Table):
     )
 
 
-class EventTable(CoreTable):
-    class Meta:
-        model = Event
-        fields = ("name", "description", "is_published")
-
-
 class ActivityTable(CoreTable):
+    tags_list = django_tables2.TemplateColumn(
+        template_name="presente/includes/tags_column.html",
+        verbose_name=_("Tags"),
+        orderable=False,
+        exclude_from_export=True,
+    )
+
     class Meta:
         model = Activity
-        fields = ("event", "title", "start_time", "end_time", "is_published")
+        fields = ("title", "tags_list", "start_time", "end_time", "is_published")
 
 
 class AttendanceTable(django_tables2.Table):
@@ -30,10 +31,10 @@ class AttendanceTable(django_tables2.Table):
         verbose_name=_("Atividade"),
         orderable=True,
     )
-    event_name = django_tables2.Column(
-        accessor="activity__event__name",
-        verbose_name=_("Evento"),
-        orderable=True,
+    activity_tags = django_tables2.TemplateColumn(
+        template_name="presente/includes/tags_column_attendance.html",
+        verbose_name=_("Tags"),
+        orderable=False,
     )
     activity_start = django_tables2.DateTimeColumn(
         accessor="activity__start_time",
@@ -57,7 +58,7 @@ class AttendanceTable(django_tables2.Table):
         model = Attendance
         fields = (
             "activity_title",
-            "event_name",
+            "activity_tags",
             "activity_start",
             "activity_end",
             "checked_in_at",

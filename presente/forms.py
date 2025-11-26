@@ -1,32 +1,22 @@
 from django import forms
-from .models import Event, Activity
-
-
-class EventForm(forms.ModelForm):
-    class Meta:
-        model = Event
-        fields = ["name", "description", "is_published"]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
-            "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        }
+from taggit.forms import TagWidget
+from .models import Activity
 
 
 class ActivityForm(forms.ModelForm):
     class Meta:
         model = Activity
         fields = [
-            "event",
             "title",
+            "tags",
             "start_time",
             "end_time",
             "qr_timeout",
             "is_published",
         ]
         widgets = {
-            "event": forms.Select(attrs={"class": "form-select"}),
             "title": forms.TextInput(attrs={"class": "form-control"}),
+            "tags": TagWidget(attrs={"class": "form-control"}),
             "start_time": forms.DateTimeInput(
                 attrs={
                     "class": "form-control",

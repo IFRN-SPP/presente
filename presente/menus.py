@@ -43,16 +43,6 @@ Menu.add_item(
 Menu.add_item(
     "presente",
     MenuItem(
-        "Eventos",
-        reverse("presente:event_list"),
-        icon="bi bi-files",
-        check=lambda r: r.user.has_perm("presente.view_event"),
-    ),
-)
-
-Menu.add_item(
-    "presente",
-    MenuItem(
         "Atividades",
         reverse("presente:activity_list"),
         icon="bi bi-files",

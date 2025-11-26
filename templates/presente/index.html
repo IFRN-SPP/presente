@@ -3,29 +3,6 @@
 {% block app_content %}
 <div class="container-fluid">
   <div class="row">
-    {% if perms.presente.view_event %}
-    <div class="col-lg-3 col-6">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="text-muted text-uppercase mb-2">Eventos</h6>
-              <h2 class="mb-0">{{ events }}</h2>
-            </div>
-            <div class="text-primary" style="font-size: 3rem;">
-              <i class="bi bi-calendar-event"></i>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer bg-light">
-          <a href="{% url 'presente:event_list' %}" class="small text-decoration-none">
-            Ver todos <i class="bi bi-arrow-right"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
     {% if perms.presente.view_activity %}
     <div class="col-lg-3 col-6">
       <div class="card">
@@ -91,7 +68,7 @@
               <thead>
                 <tr>
                   <th>Atividade</th>
-                  <th>Evento</th>
+                  <th>Tags</th>
                   <th>Data da Atividade</th>
                   <th>Presença Registrada</th>
                 </tr>
@@ -101,10 +78,12 @@
                 <tr>
                   <td>{{ attendance.activity.title }}</td>
                   <td>
-                    {% if attendance.activity.event %}
-                      <span class="badge bg-secondary">{{ attendance.activity.event.name }}</span>
+                    {% if attendance.activity.tags.all %}
+                      {% for tag in attendance.activity.tags.all %}
+                        <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+                      {% endfor %}
                     {% else %}
-                      <span class="text-muted">-</span>
+                      <span class="text-muted small">Sem tags</span>
                     {% endif %}
                   </td>
                   <td>{{ attendance.activity.start_time|date:"d/m/Y H:i" }}</td>
@@ -135,8 +114,8 @@
         <div class="card-body">
           <h6>Como funciona:</h6>
           <ul class="mb-0">
-            <li><strong>Eventos:</strong> Crie eventos para organizar suas atividades</li>
             <li><strong>Atividades:</strong> Cadastre atividades com data/hora e tempo de QR Code</li>
+            <li><strong>Tags:</strong> Organize suas atividades usando tags (ex: 'Workshop 2024', 'Python')</li>
             <li><strong>QR Code:</strong> Compartilhe o link público para que participantes registrem presença</li>
             <li><strong>Presenças:</strong> Acompanhe quem participou de cada atividade</li>
           </ul>

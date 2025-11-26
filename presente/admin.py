@@ -1,25 +1,17 @@
 from django.contrib import admin
-from .models import Event, Activity, Attendance
-
-
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
-    list_display = ["name", "is_published"]
-    list_filter = ["is_published"]
-    search_fields = ["name", "description"]
+from .models import Activity, Attendance
 
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
     list_display = [
         "title",
-        "event",
         "start_time",
         "end_time",
         "is_published",
         "qr_timeout",
     ]
-    list_filter = ["is_published", "event"]
+    list_filter = ["is_published", "tags"]
     search_fields = ["title"]
     date_hierarchy = "start_time"
 

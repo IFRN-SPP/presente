@@ -16,10 +16,10 @@ from core.views import (
     CoreUpdateView,
     CoreDeleteView,
 )
-from .models import Event, Activity, Attendance
-from .tables import EventTable, ActivityTable, AttendanceTable
-from .forms import EventForm, ActivityForm
-from .filters import EventFilter, ActivityFilter, AttendanceFilter
+from .models import Activity, Attendance
+from .tables import ActivityTable, AttendanceTable
+from .forms import ActivityForm
+from .filters import ActivityFilter, AttendanceFilter
 from .utils import (
     encode_activity_id,
     decode_activity_id,
@@ -36,70 +36,16 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["events"] = Event.objects.filter(owner=self.request.user).count()
         context["activities"] = Activity.objects.filter(owner=self.request.user).count()
         context["my_attendances_count"] = Attendance.objects.filter(
             user=self.request.user
         ).count()
         context["recent_attendances"] = (
             Attendance.objects.filter(user=self.request.user)
-            .select_related("activity", "activity__event")
+            .select_related("activity")
             .order_by("-checked_in_at")[:5]
         )
         return context
-
-
-class EventListView(
-    AutoPermissionRequiredMixin,
-    AllowedActionsMixin,
-    PageTitleMixin,
-    SingleTableMixin,
-    FilterView,
-):
-    page_title = _("Eventos")
-    paginate_by = 10
-    model = Event
-    table_class = EventTable
-    filterset_class = EventFilter
-    template_name = "core/list.html"
-    permission_action = "view"
-
-    def get_queryset(self):
-        return Event.objects.filter(owner=self.request.user)
-
-
-class EventCreateView(CoreCreateView):
-    page_title = _("Eventos")
-    model = Event
-    form_class = EventForm
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-
-class EventDetailView(CoreDetailView):
-    page_title = _("Eventos")
-    model = Event
-
-    def get_queryset(self):
-        return Event.objects.filter(owner=self.request.user)
-
-
-class EventUpdateView(CoreUpdateView):
-    page_title = _("Eventos")
-    model = Event
-    form_class = EventForm
-
-    def get_queryset(self):
-        return Event.objects.filter(owner=self.request.user)
-
-
-class EventDeleteView(CoreDeleteView):
-    model = Event
-
-    def get_queryset(self):
-        return Event.objects.filter(owner=self.request.user)
 
 
 class ActivityListView(
@@ -281,6 +227,7 @@ class MyAttendancesView(
     def get_queryset(self):
         return (
             Attendance.objects.filter(user=self.request.user)
-            .select_related("activity", "activity__event")
+            .select_related("activity")
+            .prefetch_related("activity__tags")
             .order_by("-checked_in_at")
         )

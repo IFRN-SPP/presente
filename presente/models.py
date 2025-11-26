@@ -1,29 +1,9 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from taggit.managers import TaggableManager
 
 User = get_user_model()
-
-
-class Event(models.Model):
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="owned_events",
-        verbose_name=_("owner"),
-        null=True,
-        blank=True,
-    )
-    name = models.CharField(_("name"), max_length=100)
-    description = models.TextField(_("description"))
-    is_published = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = _("Evento")
-        verbose_name_plural = _("Eventos")
 
 
 class Activity(models.Model):
@@ -35,15 +15,14 @@ class Activity(models.Model):
         null=True,
         blank=True,
     )
-    event = models.ForeignKey(
-        Event,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="activities",
-        verbose_name=_("event"),
-    )
     title = models.CharField(_("title"), max_length=100)
+    tags = TaggableManager(
+        verbose_name=_("tags"),
+        help_text=_(
+            "Tags para organizar as atividades (ex: 'Workshop 2024', 'Python')"
+        ),
+        blank=True,
+    )
     start_time = models.DateTimeField(_("start time"))
     end_time = models.DateTimeField(_("end time"))
     is_published = models.BooleanField(default=False)

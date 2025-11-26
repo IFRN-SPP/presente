@@ -14,6 +14,7 @@ django-filter==25.2
 django-htmx==1.26.0
 django-simple-menu==2.1.4
 django-tables2==2.7.5
+django-taggit==6.1.0
 django-tinymce==4.1.0
 filelock==3.19.1
 identify==2.6.15

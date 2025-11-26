@@ -17,9 +17,12 @@
     </div>
 
     <div class="activity-body">
-      {% if activity.event %}
+      {% if activity.tags.all %}
       <div class="event-info">
-        <i class="bi bi-folder"></i> {{ activity.event.name }}
+        <i class="bi bi-tags"></i>
+        {% for tag in activity.tags.all %}
+          <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+        {% endfor %}
       </div>
       {% endif %}
 

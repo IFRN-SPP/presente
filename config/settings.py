@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
     "simple_menu",
     "django_tables2",
     "django_filters",
+    "taggit",
 ]
 
 LOCAL_APPS = [
