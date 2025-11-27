@@ -17,29 +17,8 @@
     </div>
 
     <div class="activity-body">
-      {% if activity.tags.all %}
-      <div class="event-info">
-        <i class="bi bi-tags"></i>
-        {% for tag in activity.tags.all %}
-          <span class="badge bg-secondary me-1">{{ tag.name }}</span>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <div class="time-info">
-        <div class="time-block">
-          <div class="time-label"><i class="bi bi-clock"></i> Início</div>
-          <div class="time-value">{{ activity.start_time|date:"d/m/Y H:i" }}</div>
-        </div>
-        <div class="time-block">
-          <div class="time-label"><i class="bi bi-clock-fill"></i> Término</div>
-          <div class="time-value">{{ activity.end_time|date:"d/m/Y H:i" }}</div>
-        </div>
-      </div>
-
       <div class="qr-section">
         <div class="qr-title">Registrar Presença</div>
-        <div class="qr-subtitle">Escaneie o QR Code para registrar sua presença</div>
 
         <div id="qr-code-container"
              hx-get="{% url 'presente:activity_qr' encoded_id %}"
@@ -47,21 +26,6 @@
              hx-swap="innerHTML">
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Carregando...</span>
-          </div>
-        </div>
-
-        <div class="instructions">
-          <div class="instruction-item">
-            <i class="bi bi-phone"></i>
-            <span>Escaneie com seu celular</span>
-          </div>
-          <div class="instruction-item">
-            <i class="bi bi-person-check"></i>
-            <span>Faça login</span>
-          </div>
-          <div class="instruction-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Presença registrada!</span>
           </div>
         </div>
       </div>

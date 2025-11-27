@@ -10,24 +10,30 @@ class Activity(models.Model):
     owners = models.ManyToManyField(
         User,
         related_name="owned_activities",
-        verbose_name=_("owners"),
+        verbose_name=_("Responsáveis"),
         blank=True,
     )
-    title = models.CharField(_("title"), max_length=100)
+    title = models.CharField(_("Título"), max_length=100)
     tags = TaggableManager(
-        verbose_name=_("tags"),
+        verbose_name=_("Tags"),
         help_text=_(
             "Tags para organizar as atividades (ex: 'Workshop 2024', 'Python')"
         ),
         blank=True,
     )
-    start_time = models.DateTimeField(_("start time"))
-    end_time = models.DateTimeField(_("end time"))
-    is_published = models.BooleanField(default=False)
+    start_time = models.DateTimeField(_("Data/hora de início"))
+    end_time = models.DateTimeField(_("Data/hora de término"))
+    is_published = models.BooleanField(
+        _("Publicado"),
+        default=False,
+        help_text=_("Define se a atividade está visível para registro de presença"),
+    )
     qr_timeout = models.IntegerField(
-        _("QR code timeout (seconds)"),
+        _("Timeout do QR Code (segundos)"),
         default=30,
-        help_text=_("How long each QR code is valid for check-in (in seconds)"),
+        help_text=_(
+            "Tempo de validade de cada QR Code para registro de presença (em segundos)"
+        ),
     )
 
     def __str__(self):
@@ -43,15 +49,15 @@ class Attendance(models.Model):
         Activity,
         on_delete=models.CASCADE,
         related_name="attendances",
-        verbose_name=_("activity"),
+        verbose_name=_("Atividade"),
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="attendances",
-        verbose_name=_("user"),
+        verbose_name=_("Usuário"),
     )
-    checked_in_at = models.DateTimeField(_("checked in at"), auto_now_add=True)
+    checked_in_at = models.DateTimeField(_("Registrado em"), auto_now_add=True)
 
     def __str__(self):
         return f"{self.user} - {self.activity}"

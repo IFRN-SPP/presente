@@ -1,12 +1,14 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.views.generic import View
+from django.views.generic.edit import DeleteView
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
 from django.http import Http404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin
 from core.mixins import PageTitleMixin, AutoPermissionRequiredMixin, AllowedActionsMixin
@@ -17,7 +19,7 @@ from core.views import (
     CoreDeleteView,
 )
 from .models import Activity, Attendance
-from .tables import ActivityTable, AttendanceTable
+from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
 from .forms import ActivityForm
 from .filters import ActivityFilter, AttendanceFilter
 from .utils import (
@@ -103,7 +105,7 @@ class ActivityDetailView(CoreDetailView):
         )
         fields.append(
             {
-                "label": _("Proprietários"),
+                "label": _("Responsáveis"),
                 "value": owners_list if owners_list else "-",
                 "safe": False,
             }
@@ -260,3 +262,84 @@ class MyAttendancesView(
             .prefetch_related("activity__tags")
             .order_by("-checked_in_at")
         )
+
+
+class ActivityAttendanceListView(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    AllowedActionsMixin,
+    SingleTableMixin,
+    FilterView,
+):
+    """View showing all attendances for a specific activity"""
+
+    model = Attendance
+    table_class = ActivityAttendanceTable
+    template_name = "core/list.html"
+    paginate_by = 20
+    context_object_name = "attendances"
+    actions = ["delete"]
+
+    def get_page_title(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        return _("Presenças - {}").format(activity.title)
+
+    def get_queryset(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+
+        # Check if user is owner (only owners can view attendances)
+        if not activity.owners.filter(pk=self.request.user.pk).exists():
+            raise Http404(
+                "Você não tem permissão para ver as presenças desta atividade"
+            )
+
+        return (
+            Attendance.objects.filter(activity=activity)
+            .select_related("user")
+            .order_by("-checked_in_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        context["activity"] = activity
+        context["total_attendances"] = self.get_queryset().count()
+        return context
+
+    def get_allowed_actions(self):
+        """Override to provide custom delete URL that includes activity pk"""
+        allowed_actions = {}
+        # Only add delete action for owners
+        allowed_actions["delete"] = "presente:attendance_delete"
+        return allowed_actions
+
+
+class AttendanceDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    """Delete an attendance - only accessible by activity owners"""
+
+    model = Attendance
+    template_name = "core/delete.html"
+    template_name_modal = "core/includes/delete_modal.html"
+    success_message = _("Presença removida com sucesso!")
+
+    def get_queryset(self):
+        # Get the attendance and check if user is owner of the activity
+        activity = get_object_or_404(Activity, pk=self.kwargs["activity_pk"])
+
+        # Check if user is owner
+        if not activity.owners.filter(pk=self.request.user.pk).exists():
+            raise Http404(
+                "Você não tem permissão para remover presenças desta atividade"
+            )
+
+        return Attendance.objects.filter(activity=activity)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "presente:activity_attendances", kwargs={"pk": self.kwargs["activity_pk"]}
+        )
+
+    def get_template_names(self):
+        if not self.request.htmx:
+            return [self.template_name]
+        return [self.template_name_modal]

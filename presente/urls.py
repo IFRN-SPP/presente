@@ -19,6 +19,16 @@ urlpatterns = [
         views.ActivityDeleteView.as_view(),
         name="activity_delete",
     ),
+    path(
+        "activity/<int:pk>/attendances/",
+        views.ActivityAttendanceListView.as_view(),
+        name="activity_attendances",
+    ),
+    path(
+        "activity/<int:activity_pk>/attendance/<int:pk>/delete/",
+        views.AttendanceDeleteView.as_view(),
+        name="attendance_delete",
+    ),
     # User attendances
     path("my-attendances/", views.MyAttendancesView.as_view(), name="my_attendances"),
     # Public attendance URLs

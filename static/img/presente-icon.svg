@@ -6,9 +6,37 @@
    role="img"
    aria-label="Presente Icon"
    version="1.1"
-   xmlns="http://www.w3.org/2000/svg">
+   id="svg1"
+   sodipodi:docname="presente-icon.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="4.1"
+     inkscape:cx="80"
+     inkscape:cy="80"
+     inkscape:window-width="1590"
+     inkscape:window-height="867"
+     inkscape:window-x="5"
+     inkscape:window-y="28"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
   <!-- Icon: rounded square with checkmark and red circle -->
-  <g>
+  <g
+     id="g1">
     <rect
        x="0"
        y="0"
@@ -16,18 +44,23 @@
        height="160"
        rx="16"
        ry="16"
-       fill="#2f9e41" />
+       fill="#2f9e41"
+       id="rect1" />
     <path
-       d="M 29.113263,90.619558 71.481841,131.63715 130.88674,41.969729"
+       d="M 37.071459,86.658087 78.238754,134.5208 C 92.119739,98.842251 112.35503,69.827249 138.61786,43.65122"
        fill="none"
        stroke="#ffffff"
-       stroke-width="22.6772"
+       stroke-width="24.2772"
        stroke-linecap="round"
-       stroke-linejoin="round" />
+       stroke-linejoin="round"
+       id="path1"
+       sodipodi:nodetypes="ccc" />
     <circle
-       cx="42.38409"
-       cy="43.107475"
-       r="22.5"
-       fill="#cd191e" />
+       cx="38.6036"
+       cy="38.839176"
+       r="23.597561"
+       fill="#cd191e"
+       id="circle1"
+       style="stroke-width:1.04878" />
   </g>
 </svg>

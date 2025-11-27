@@ -5,6 +5,58 @@
 {{ form.media }}
 {% endblock %}
 
+{% block extra_body %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Tom Select for this form
+  function initializeTomSelect() {
+    // Multi-select for users
+    document.querySelectorAll('[data-tom-select="users"]').forEach(function(el) {
+      if (!el.tomselect) {
+        new TomSelect(el, {
+          plugins: ['remove_button'],
+          persist: false,
+          create: false,
+          maxItems: null,
+          render: {
+            option: function(data, escape) {
+              return '<div>' + escape(data.text) + '</div>';
+            },
+            item: function(data, escape) {
+              return '<div>' + escape(data.text) + '</div>';
+            }
+          }
+        });
+      }
+    });
+
+    // Multi-select for tags with create
+    document.querySelectorAll('[data-tom-select="tags"]').forEach(function(el) {
+      if (!el.tomselect) {
+        new TomSelect(el, {
+          plugins: ['remove_button'],
+          persist: false,
+          create: true,
+          delimiter: ',',
+          createOnBlur: true,
+          maxItems: null,
+          render: {
+            option_create: function(data, escape) {
+              return '<div class="create">Adicionar <strong>' + escape(data.input) + '</strong>&hellip;</div>';
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Run initialization immediately and after a delay
+  setTimeout(initializeTomSelect, 100);
+  setTimeout(initializeTomSelect, 500);
+});
+</script>
+{% endblock %}
+
 {% block crumb %}
 {{ block.super }}
 <li class="breadcrumb-item">

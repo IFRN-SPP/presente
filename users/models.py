@@ -9,23 +9,25 @@ class User(AbstractUser):
         SERVIDOR = "SERVIDOR", _("Servidor")
         ALUNO = "ALUNO", _("Aluno")
 
-    email = models.EmailField(_("email address"), unique=True)
-    username = models.CharField(_("username"), max_length=150, blank=True, null=True)
+    email = models.EmailField(_("E-mail"), unique=True)
+    username = models.CharField(
+        _("Nome de usuário"), max_length=150, blank=True, null=True
+    )
     type = models.CharField(
-        _("tipo"),
+        _("Tipo"),
         max_length=20,
         choices=UserType.choices,
         blank=True,
         null=True,
     )
     avatar_url = models.URLField(
-        _("avatar URL"),
+        _("URL do avatar"),
         max_length=500,
         blank=True,
         null=True,
     )
     is_suap_user = models.BooleanField(
-        _("usuário SUAP"),
+        _("Usuário SUAP"),
         default=False,
         help_text=_("Indica se o usuário foi criado via login SUAP"),
     )

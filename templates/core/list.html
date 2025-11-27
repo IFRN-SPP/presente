@@ -11,6 +11,40 @@
 <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
 {% endblock %}
 
+{% block extra_body %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Tom Select for filter forms
+  function initializeFilterTomSelect() {
+    // Simple select dropdowns (single select) - used in filters
+    document.querySelectorAll('[data-tom-select="simple"]').forEach(function(el) {
+      if (!el.tomselect) {
+        new TomSelect(el, {
+          persist: false,
+          create: false,
+          allowEmptyOption: true,
+          placeholder: el.getAttribute('placeholder') || 'Selecione...',
+        });
+      }
+    });
+  }
+
+  // Run initialization after a delay to catch dynamically loaded elements
+  setTimeout(initializeFilterTomSelect, 100);
+  setTimeout(initializeFilterTomSelect, 500);
+
+  // Also run when filter collapse is shown
+  const filterCollapse = document.getElementById('filterCollapse');
+  if (filterCollapse) {
+    filterCollapse.addEventListener('shown.bs.collapse', function() {
+      setTimeout(initializeFilterTomSelect, 50);
+    });
+  }
+});
+</script>
+{% endblock %}
+
 {% block app_content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">

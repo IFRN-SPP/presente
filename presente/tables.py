@@ -64,3 +64,42 @@ class AttendanceTable(django_tables2.Table):
             "checked_in_at",
         )
         order_by = "-checked_in_at"
+
+
+class ActivityAttendanceTable(django_tables2.Table):
+    user_name = django_tables2.Column(
+        accessor="user__first_name",
+        verbose_name=_("Nome"),
+        orderable=True,
+    )
+    user_email = django_tables2.Column(
+        accessor="user__email",
+        verbose_name=_("E-mail"),
+        orderable=True,
+    )
+    user_type = django_tables2.Column(
+        accessor="user__type",
+        verbose_name=_("Tipo"),
+        orderable=True,
+    )
+    checked_in_at = django_tables2.DateTimeColumn(
+        verbose_name=_("Presença Registrada em"),
+        format="d/m/Y H:i:s",
+        orderable=True,
+    )
+    actions = django_tables2.TemplateColumn(
+        template_name="presente/includes/attendance_actions.html",
+        orderable=False,
+        verbose_name=_("Ações"),
+        exclude_from_export=True,
+    )
+
+    class Meta:
+        model = Attendance
+        fields = (
+            "user_name",
+            "user_email",
+            "user_type",
+            "checked_in_at",
+        )
+        order_by = "-checked_in_at"

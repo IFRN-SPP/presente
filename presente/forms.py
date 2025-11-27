@@ -55,8 +55,10 @@ class ActivityForm(forms.ModelForm):
         self.fields["start_time"].input_formats = ["%Y-%m-%dT%H:%M"]
         self.fields["end_time"].input_formats = ["%Y-%m-%dT%H:%M"]
 
-        # Populate owners field with all users
-        self.fields["owners"].queryset = User.objects.all().order_by("email")
+        # Populate owners field with SERVIDOR users only
+        self.fields["owners"].queryset = User.objects.filter(type="SERVIDOR").order_by(
+            "email"
+        )
         self.fields["owners"].label_from_instance = (
             lambda obj: obj.get_full_name() or obj.email
         )

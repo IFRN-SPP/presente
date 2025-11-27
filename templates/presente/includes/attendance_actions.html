@@ -1,0 +1,14 @@
+<div class="btn-group btn-group-sm" role="group">
+  {% if "delete" in allowed_actions %}
+  <button
+    hx-get="{% url allowed_actions.delete activity_pk=activity.pk pk=record.id %}"
+    hx-target=".modal-content"
+    hx-trigger="click"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+    class="btn btn-outline-danger"
+    title="Remover">
+    <i class="bi bi-trash-fill"></i>
+  </button>
+  {% endif %}
+</div>

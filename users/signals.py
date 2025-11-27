@@ -2,42 +2,33 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from .models import User
 
 
 @receiver(post_save, sender=User)
-def assign_group_based_on_type(sender, instance, created, **kwargs):
+def assign_permissions_based_on_type(sender, instance, created, **kwargs):
     """
-    Automatically assign users to groups based on their type.
-    SERVIDOR users get activity management permissions.
+    Assign permissions to users based on their type.
+    SERVIDOR users get full activity management permissions.
+    ALUNO users get no special permissions (can only view their own attendances).
     """
-    if not instance.type:
-        return
-
-    # Get or create the Servidor group
-    servidor_group, _ = Group.objects.get_or_create(name="Servidor")
+    from presente.models import Activity
 
     if instance.type == "SERVIDOR":
-        # Add user to Servidor group
-        instance.groups.add(servidor_group)
+        # Get or create Servidor group
+        servidor_group, _ = Group.objects.get_or_create(name="Servidor")
 
-        # Ensure the group has activity permissions
-        from presente.models import Activity
-
-        content_type = ContentType.objects.get_for_model(Activity)
-        permissions = Permission.objects.filter(
-            content_type=content_type,
-            codename__in=[
-                "add_activity",
-                "change_activity",
-                "delete_activity",
-                "view_activity",
-            ],
-        )
+        # Add activity permissions to the group
+        activity_content_type = ContentType.objects.get_for_model(Activity)
+        permissions = Permission.objects.filter(content_type=activity_content_type)
         servidor_group.permissions.set(permissions)
 
+        # Add user to Servidor group
+        instance.groups.add(servidor_group)
     elif instance.type == "ALUNO":
-        # Remove user from Servidor group if they're in it
-        instance.groups.remove(servidor_group)
+        # Remove from Servidor group if they were in it
+        try:
+            servidor_group = Group.objects.get(name="Servidor")
+            instance.groups.remove(servidor_group)
+        except Group.DoesNotExist:
+            pass
