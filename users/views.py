@@ -50,6 +50,11 @@ class UserListView(
     template_name = "core/list.html"
     permission_action = "view"
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Prefetch social accounts to avoid N+1 queries when accessing matricula
+        return queryset.prefetch_related("socialaccount_set")
+
 
 class UserCreateView(CoreCreateView):
     page_title = _("Usuários")
@@ -80,8 +85,14 @@ class UserProfileView(LoginRequiredMixin, PageTitleMixin, TemplateView):
     page_title = _("Perfil")
     template_name = "presente/profile.html"
 
-    def get_object(self, queryset=None):
-        return self.request.user
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Prefetch social accounts for the current user
+        user = User.objects.prefetch_related("socialaccount_set").get(
+            pk=self.request.user.pk
+        )
+        context["user"] = user
+        return context
 
 
 class UserProfileUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):

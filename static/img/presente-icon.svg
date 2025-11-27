@@ -26,7 +26,7 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="4.1"
-     inkscape:cx="80"
+     inkscape:cx="80.121951"
      inkscape:cy="80"
      inkscape:window-width="1590"
      inkscape:window-height="867"
@@ -56,11 +56,11 @@
        id="path1"
        sodipodi:nodetypes="ccc" />
     <circle
-       cx="38.6036"
-       cy="38.839176"
-       r="23.597561"
+       cx="42.506039"
+       cy="36.400154"
+       r="27.743902"
        fill="#cd191e"
        id="circle1"
-       style="stroke-width:1.04878" />
+       style="stroke-width:1.23306" />
   </g>
 </svg>

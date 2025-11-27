@@ -68,9 +68,9 @@ class AttendanceTable(django_tables2.Table):
 
 class ActivityAttendanceTable(django_tables2.Table):
     user_name = django_tables2.Column(
-        accessor="user__first_name",
+        accessor="user",
         verbose_name=_("Nome"),
-        orderable=True,
+        orderable=False,
     )
     user_email = django_tables2.Column(
         accessor="user__email",
@@ -93,6 +93,10 @@ class ActivityAttendanceTable(django_tables2.Table):
         verbose_name=_("Ações"),
         exclude_from_export=True,
     )
+
+    def render_user_name(self, record):
+        """Render user's full name"""
+        return record.user.get_full_name()
 
     class Meta:
         model = Attendance

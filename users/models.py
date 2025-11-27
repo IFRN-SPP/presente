@@ -13,6 +13,13 @@ class User(AbstractUser):
     username = models.CharField(
         _("Nome de usuário"), max_length=150, blank=True, null=True
     )
+    full_name = models.CharField(
+        _("Nome completo"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Nome completo do usuário (usa nome social se disponível)"),
+    )
     type = models.CharField(
         _("Tipo"),
         max_length=20,
@@ -46,8 +53,22 @@ class User(AbstractUser):
             self.username = self.email
         super().save(*args, **kwargs)
 
+    @property
+    def matricula(self):
+        """Get matricula from SUAP social account uid"""
+        if self.is_suap_user:
+            social_account = self.socialaccount_set.filter(provider="suap").first()
+            if social_account:
+                return social_account.uid
+        return None
+
+    def get_full_name(self):
+        """Return full name, preferring full_name field, then first_name + last_name"""
+        if self.full_name:
+            return self.full_name
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+        return self.email
+
     def __str__(self):
-        if self.first_name:
-            return self.first_name
-        else:
-            return self.email
+        return self.get_full_name()

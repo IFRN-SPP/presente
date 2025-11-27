@@ -32,28 +32,10 @@
                 style="width: 150px; height: 150px; object-fit: cover;"
               />
             </div>
-            <div class="col-md-6">
+            <div class="col-12">
               <div class="detail-field">
-                <label class="text-muted small text-uppercase mb-1">Nome</label>
-                <div class="detail-value">
-                  {% if user.first_name %}
-                    {{ user.first_name }}
-                  {% else %}
-                    <span class="text-muted">-</span>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="detail-field">
-                <label class="text-muted small text-uppercase mb-1">Sobrenome</label>
-                <div class="detail-value">
-                  {% if user.last_name %}
-                    {{ user.last_name }}
-                  {% else %}
-                    <span class="text-muted">-</span>
-                  {% endif %}
-                </div>
+                <label class="text-muted small text-uppercase mb-1">Nome Completo</label>
+                <div class="detail-value">{{ user.get_full_name }}</div>
               </div>
             </div>
             <div class="col-12">
@@ -68,6 +50,20 @@
                 <div class="detail-value">{{ user.username }}</div>
               </div>
             </div>
+            {% if user.is_suap_user %}
+            <div class="col-12">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">Matrícula</label>
+                <div class="detail-value">
+                  {% if user.matricula %}
+                    {{ user.matricula }}
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
             <div class="col-12">
               <div class="detail-field">
                 <label class="text-muted small text-uppercase mb-1">Tipo</label>

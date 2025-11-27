@@ -20,6 +20,13 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         user_field(user, "first_name", data.get("first_name"))
         user_field(user, "last_name", data.get("last_name"))
 
+        # Full name - respect nome_social if available
+        nome_completo = extra_data.get("nome_registro", "")
+        if nome_social := extra_data.get("nome_social"):
+            nome_completo = nome_social
+        if nome_completo:
+            user.full_name = nome_completo
+
         # User type from tipo_usuario
         tipo_usuario = extra_data.get("tipo_usuario", "")
         if "Servidor" in tipo_usuario:
@@ -49,6 +56,13 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         # Update basic fields
         user.first_name = extra_data.get("primeiro_nome", "")
         user.last_name = extra_data.get("ultimo_nome", "")
+
+        # Update full name - respect nome_social if available
+        nome_completo = extra_data.get("nome_registro", "")
+        if nome_social := extra_data.get("nome_social"):
+            nome_completo = nome_social
+        if nome_completo:
+            user.full_name = nome_completo
 
         # Update user type
         tipo_usuario = extra_data.get("tipo_usuario", "")
