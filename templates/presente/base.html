@@ -40,6 +40,9 @@
     <link rel="stylesheet" href="{% static 'css/tables.css' %}" />
     <link rel="stylesheet" href="{% static 'css/presente.css' %}" />
     <!--end::Custom Styles-->
+    <!--begin::Tom Select-->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <!--end::Tom Select-->
     {% htmx_script %}
     {% block extra_head %} {% endblock %}
     <!--end::Required Plugin(AdminLTE)-->
@@ -70,7 +73,11 @@
       src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/js/adminlte.min.js"
       crossorigin="anonymous"
     ></script>
-    <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
+    <!--end::Required Plugin(AdminLTE)-->
+    <!--begin::Tom Select-->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <!--end::Tom Select-->
+    <!--begin::OverlayScrollbars Configure-->
     <script>
       const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
       const Default = {
@@ -89,6 +96,60 @@
             },
           });
         }
+
+        // Initialize Tom Select for multi-select fields (needs to run after DOM is ready)
+        setTimeout(function() {
+          // Multi-select for users
+          document.querySelectorAll('[data-tom-select="users"]').forEach(function(el) {
+            if (!el.tomselect) {
+              new TomSelect(el, {
+                plugins: ['remove_button'],
+                persist: false,
+                create: false,
+                maxItems: null,
+                render: {
+                  option: function(data, escape) {
+                    return '<div>' + escape(data.text) + '</div>';
+                  },
+                  item: function(data, escape) {
+                    return '<div>' + escape(data.text) + '</div>';
+                  }
+                }
+              });
+            }
+          });
+
+          // Multi-select for tags with create
+          document.querySelectorAll('[data-tom-select="tags"]').forEach(function(el) {
+            if (!el.tomselect) {
+              new TomSelect(el, {
+                plugins: ['remove_button'],
+                persist: false,
+                create: true,
+                delimiter: ',',
+                createOnBlur: true,
+                maxItems: null,
+                render: {
+                  option_create: function(data, escape) {
+                    return '<div class="create">Adicionar <strong>' + escape(data.input) + '</strong>&hellip;</div>';
+                  }
+                }
+              });
+            }
+          });
+
+          // Simple select dropdowns (single select)
+          document.querySelectorAll('[data-tom-select="simple"]').forEach(function(el) {
+            if (!el.tomselect) {
+              new TomSelect(el, {
+                persist: false,
+                create: false,
+                allowEmptyOption: true,
+                placeholder: el.getAttribute('placeholder') || 'Selecione...',
+              });
+            }
+          });
+        }, 100);
       });
     </script>
     {% block extra_body %}

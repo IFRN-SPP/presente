@@ -1,4 +1,5 @@
 {% extends "presente/private_base.html" %}
+{% load static %}
 
 {% block crumb %}
 {{ block.super }}
@@ -17,6 +18,20 @@
         </div>
         <div class="card-body">
           <div class="row g-3">
+            <div class="col-12 text-center mb-3">
+              <img
+                {% if user.avatar_url %}
+                src="{{ user.avatar_url }}"
+                {% elif user.avatar %}
+                src="{{ user.avatar.url }}"
+                {% else %}
+                src="{% static 'img/placeholder/avatar.png' %}"
+                {% endif %}
+                class="rounded-circle shadow"
+                alt="Avatar do usuário"
+                style="width: 150px; height: 150px; object-fit: cover;"
+              />
+            </div>
             <div class="col-md-6">
               <div class="detail-field">
                 <label class="text-muted small text-uppercase mb-1">Nome</label>
@@ -53,6 +68,20 @@
                 <div class="detail-value">{{ user.username }}</div>
               </div>
             </div>
+            <div class="col-12">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">Tipo</label>
+                <div class="detail-value">
+                  {% if user.type %}
+                    <span class="badge {% if user.type == 'SERVIDOR' %}bg-success{% else %}bg-info{% endif %}">
+                      {{ user.get_type_display }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="card-footer bg-light">
@@ -60,11 +89,17 @@
             <a href="{% url 'presente:index' %}" class="btn btn-secondary">
               <i class="bi bi-arrow-left"></i> Voltar
             </a>
+            {% if not user.is_suap_user %}
             <div class="d-flex gap-2">
               <a href="{% url 'users:user_profile_change' %}" class="btn btn-primary">
                 <i class="bi bi-pencil"></i> Editar Perfil
               </a>
             </div>
+            {% else %}
+            <div class="text-muted small">
+              <i class="bi bi-info-circle"></i> Perfil gerenciado pelo SUAP
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>

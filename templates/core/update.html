@@ -23,7 +23,7 @@
           </h5>
         </div>
         <div class="card-body">
-          <form method="post" enctype="multipart/form-data">
+          <form method="post" enctype="multipart/form-data" id="activity-form">
             {% csrf_token %}
             {{ formset.management_form }}
             {{form|crispy}}
@@ -37,25 +37,20 @@
               {% if not forloop.last %}<hr>{% endif %}
             {% endfor %}
             {% endif %}
+            <div class="mt-3">
+              <div class="d-flex justify-content-between">
+                <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
+                  <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-save"></i> Salvar Alterações
+                </button>
+              </div>
+            </div>
           </form>
-        </div>
-        <div class="card-footer bg-light">
-          <div class="d-flex justify-content-between">
-            <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
-              <i class="bi bi-arrow-left"></i> Voltar
-            </a>
-            <button type="submit" form="id_form" class="btn btn-primary">
-              <i class="bi bi-save"></i> Salvar Alterações
-            </button>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<script>
-// Add id to form for footer button
-document.querySelector('form').id = 'id_form';
-</script>
 {% endblock %}

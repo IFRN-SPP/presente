@@ -36,7 +36,12 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["activities"] = Activity.objects.filter(owner=self.request.user).count()
+        if self.request.user.is_superuser:
+            context["activities"] = Activity.objects.count()
+        else:
+            context["activities"] = Activity.objects.filter(
+                owners=self.request.user
+            ).count()
         context["my_attendances_count"] = Attendance.objects.filter(
             user=self.request.user
         ).count()
@@ -64,7 +69,9 @@ class ActivityListView(
     permission_action = "view"
 
     def get_queryset(self):
-        return Activity.objects.filter(owner=self.request.user)
+        if self.request.user.is_superuser:
+            return Activity.objects.all()
+        return Activity.objects.filter(owners=self.request.user)
 
 
 class ActivityCreateView(CoreCreateView):
@@ -73,8 +80,9 @@ class ActivityCreateView(CoreCreateView):
     form_class = ActivityForm
 
     def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self.object.owners.add(self.request.user)
+        return response
 
 
 class ActivityDetailView(CoreDetailView):
@@ -83,7 +91,24 @@ class ActivityDetailView(CoreDetailView):
     template_name = "presente/activity_detail.html"
 
     def get_queryset(self):
-        return Activity.objects.filter(owner=self.request.user)
+        if self.request.user.is_superuser:
+            return Activity.objects.all()
+        return Activity.objects.filter(owners=self.request.user)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        # Add owners to the fields list
+        owners_list = ", ".join(
+            [owner.get_full_name() or owner.email for owner in self.object.owners.all()]
+        )
+        fields.append(
+            {
+                "label": _("Proprietários"),
+                "value": owners_list if owners_list else "-",
+                "safe": False,
+            }
+        )
+        return fields
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,14 +123,18 @@ class ActivityUpdateView(CoreUpdateView):
     form_class = ActivityForm
 
     def get_queryset(self):
-        return Activity.objects.filter(owner=self.request.user)
+        if self.request.user.is_superuser:
+            return Activity.objects.all()
+        return Activity.objects.filter(owners=self.request.user)
 
 
 class ActivityDeleteView(CoreDeleteView):
     model = Activity
 
     def get_queryset(self):
-        return Activity.objects.filter(owner=self.request.user)
+        if self.request.user.is_superuser:
+            return Activity.objects.all()
+        return Activity.objects.filter(owners=self.request.user)
 
 
 # Public views for attendance

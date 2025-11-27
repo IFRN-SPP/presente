@@ -27,6 +27,9 @@
       >
         {% generate_menu %}
         {% for item in menus.presente  %}
+        {% if forloop.counter == 3 %}
+        <li class="nav-header border-top mt-2 pt-2">ADMINISTRAÇÃO</li>
+        {% endif %}
         <li class="nav-item {% if item.selected and item.children %}menu-open{% endif %}">
           <a href="{{ item.url }}" class="nav-link {% if item.selected %}active{% endif %}">
             <i class="nav-icon {{ item.icon }}"></i>
@@ -52,7 +55,7 @@
         </li>
         {% endfor %}
         <li class="nav-item border-top">
-          <form action="{% url 'account_logout' %}" method="post">
+          <form action="{% url 'account_logout' %}" method="post" id="sidebar-logout-form">
             {% csrf_token %}
             <button type="submit" class="nav-link btn btn-dark fw-bolder shadow-none text-danger w-100">
               <i class="nav-icon bi bi-box-arrow-left"></i>

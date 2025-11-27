@@ -45,7 +45,7 @@ Menu.add_item(
     MenuItem(
         "Atividades",
         reverse("presente:activity_list"),
-        icon="bi bi-files",
+        icon="bi bi-list-check",
         check=lambda r: r.user.has_perm("presente.view_activity"),
     ),
 )

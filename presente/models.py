@@ -7,12 +7,10 @@ User = get_user_model()
 
 
 class Activity(models.Model):
-    owner = models.ForeignKey(
+    owners = models.ManyToManyField(
         User,
-        on_delete=models.CASCADE,
         related_name="owned_activities",
-        verbose_name=_("owner"),
-        null=True,
+        verbose_name=_("owners"),
         blank=True,
     )
     title = models.CharField(_("title"), max_length=100)

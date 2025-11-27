@@ -14,6 +14,7 @@ class ActivityAdmin(admin.ModelAdmin):
     list_filter = ["is_published", "tags"]
     search_fields = ["title"]
     date_hierarchy = "start_time"
+    filter_horizontal = ["owners"]
 
 
 @admin.register(Attendance)

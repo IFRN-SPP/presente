@@ -1,5 +1,5 @@
 {% extends "presente/private_base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags static %}
 
 {% block crumb %}
 {{ block.super }}
@@ -22,6 +22,21 @@
         <form action="" method="post">
           {% csrf_token %}
           <div class="card-body">
+            <div class="text-center mb-4">
+              <img
+                {% if user.avatar_url %}
+                src="{{ user.avatar_url }}"
+                {% elif user.avatar %}
+                src="{{ user.avatar.url }}"
+                {% else %}
+                src="{% static 'img/placeholder/avatar.png' %}"
+                {% endif %}
+                class="rounded-circle shadow"
+                alt="Avatar do usuário"
+                style="width: 100px; height: 100px; object-fit: cover;"
+              />
+              <p class="text-muted small mt-2"><i class="bi bi-info-circle"></i> Avatar sincronizado do SUAP</p>
+            </div>
             {{ form|crispy }}
           </div>
           <div class="card-footer bg-light">
