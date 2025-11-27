@@ -64,6 +64,32 @@
               </div>
             </div>
             {% endif %}
+            {% if user.type == "ALUNO" %}
+            <div class="col-12">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">Curso</label>
+                <div class="detail-value">
+                  {% if user.curso %}
+                    {{ user.curso }}
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">Período de Referência</label>
+                <div class="detail-value">
+                  {% if user.periodo_referencia %}
+                    {{ user.periodo_referencia }}
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
             <div class="col-12">
               <div class="detail-field">
                 <label class="text-muted small text-uppercase mb-1">Tipo</label>

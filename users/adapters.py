@@ -79,6 +79,26 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         # Mark as SUAP user
         user.is_suap_user = True
 
+        # Fetch additional student data for ALUNO users
+        if user.type == "ALUNO":
+            try:
+                import requests
+
+                token = sociallogin.token.token
+                headers = {"Authorization": f"Bearer {token}"}
+                response = requests.get(
+                    f"{settings.SUAP_URL}/api/ensino/meus-dados-aluno/",
+                    headers=headers,
+                    timeout=10,
+                )
+                if response.status_code == 200:
+                    student_data = response.json()
+                    user.curso = student_data.get("curso", "")
+                    user.periodo_referencia = student_data.get("periodo_referencia", "")
+            except Exception:
+                # If the API call fails, just continue without the student data
+                pass
+
         user.save()
         return user
 

@@ -21,7 +21,7 @@ from core.views import (
 from .models import Activity, Attendance
 from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
 from .forms import ActivityForm
-from .filters import ActivityFilter, AttendanceFilter
+from .filters import ActivityFilter, AttendanceFilter, ActivityAttendanceFilter
 from .utils import (
     encode_activity_id,
     decode_activity_id,
@@ -275,6 +275,7 @@ class ActivityAttendanceListView(
 
     model = Attendance
     table_class = ActivityAttendanceTable
+    filterset_class = ActivityAttendanceFilter
     template_name = "core/list.html"
     paginate_by = 20
     context_object_name = "attendances"
@@ -287,8 +288,11 @@ class ActivityAttendanceListView(
     def get_queryset(self):
         activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
 
-        # Check if user is owner (only owners can view attendances)
-        if not activity.owners.filter(pk=self.request.user.pk).exists():
+        # Check if user is owner or superuser (only owners and superusers can view attendances)
+        if (
+            not self.request.user.is_superuser
+            and not activity.owners.filter(pk=self.request.user.pk).exists()
+        ):
             raise Http404(
                 "Você não tem permissão para ver as presenças desta atividade"
             )
@@ -323,11 +327,14 @@ class AttendanceDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     success_message = _("Presença removida com sucesso!")
 
     def get_queryset(self):
-        # Get the attendance and check if user is owner of the activity
+        # Get the attendance and check if user is owner of the activity or superuser
         activity = get_object_or_404(Activity, pk=self.kwargs["activity_pk"])
 
-        # Check if user is owner
-        if not activity.owners.filter(pk=self.request.user.pk).exists():
+        # Check if user is owner or superuser
+        if (
+            not self.request.user.is_superuser
+            and not activity.owners.filter(pk=self.request.user.pk).exists()
+        ):
             raise Http404(
                 "Você não tem permissão para remover presenças desta atividade"
             )

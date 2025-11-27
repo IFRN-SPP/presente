@@ -8,6 +8,10 @@ class UserTable(CoreTable):
     full_name = tables.Column(verbose_name=_("Nome"), empty_values=())
     matricula = tables.Column(verbose_name=_("Matrícula"), empty_values=())
     type = tables.Column(verbose_name=_("Tipo"), empty_values=())
+    curso = tables.Column(verbose_name=_("Curso"), empty_values=())
+    periodo_referencia = tables.Column(
+        verbose_name=_("Período de Referência"), empty_values=()
+    )
 
     def render_full_name(self, record):
         # Use full_name field if available, otherwise fallback to first_name + last_name
@@ -23,6 +27,20 @@ class UserTable(CoreTable):
             return record.get_type_display()
         return "-"
 
+    def render_curso(self, record):
+        return record.curso or "-"
+
+    def render_periodo_referencia(self, record):
+        return record.periodo_referencia or "-"
+
     class Meta:
         model = User
-        fields = ("full_name", "email", "matricula", "type", "last_login")
+        fields = (
+            "full_name",
+            "email",
+            "matricula",
+            "type",
+            "curso",
+            "periodo_referencia",
+            "last_login",
+        )

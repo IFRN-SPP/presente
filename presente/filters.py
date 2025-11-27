@@ -1,8 +1,11 @@
 import django_filters
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 from taggit.models import Tag
 from .models import Activity, Attendance
+
+User = get_user_model()
 
 
 class ActivityFilter(django_filters.FilterSet):
@@ -48,6 +51,8 @@ class ActivityFilter(django_filters.FilterSet):
 
 
 class AttendanceFilter(django_filters.FilterSet):
+    """Filter for user's own attendances (My Attendances page)"""
+
     activity__title = django_filters.CharFilter(
         lookup_expr="icontains",
         label=_("Atividade"),
@@ -60,6 +65,33 @@ class AttendanceFilter(django_filters.FilterSet):
         widget=forms.Select(
             attrs={"class": "form-select", "data-tom-select": "simple"}
         ),
+    )
+    user__full_name = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Nome do Usuário"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__email = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("E-mail do Usuário"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__type = django_filters.ChoiceFilter(
+        choices=User.UserType.choices,
+        label=_("Tipo de Usuário"),
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
+    )
+    user__curso = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Curso"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__periodo_referencia = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Período de Referência"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
     checked_in_at__gte = django_filters.DateFilter(
@@ -92,8 +124,69 @@ class AttendanceFilter(django_filters.FilterSet):
         fields = [
             "activity__title",
             "activity__tags",
+            "user__full_name",
+            "user__email",
+            "user__type",
+            "user__curso",
+            "user__periodo_referencia",
             "checked_in_at__gte",
             "checked_in_at__lte",
             "activity__start_time__gte",
             "activity__start_time__lte",
+        ]
+
+
+class ActivityAttendanceFilter(django_filters.FilterSet):
+    """Filter for attendances of a specific activity"""
+
+    user__full_name = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Nome"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__email = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("E-mail"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__type = django_filters.ChoiceFilter(
+        choices=User.UserType.choices,
+        label=_("Tipo"),
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
+    )
+    user__curso = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Curso"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    user__periodo_referencia = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Período de Referência"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    checked_in_at__gte = django_filters.DateFilter(
+        field_name="checked_in_at",
+        lookup_expr="gte",
+        label=_("Registrado a partir de"),
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+    )
+    checked_in_at__lte = django_filters.DateFilter(
+        field_name="checked_in_at",
+        lookup_expr="lte",
+        label=_("Registrado até"),
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+    )
+
+    class Meta:
+        model = Attendance
+        fields = [
+            "user__full_name",
+            "user__email",
+            "user__type",
+            "user__curso",
+            "user__periodo_referencia",
+            "checked_in_at__gte",
+            "checked_in_at__lte",
         ]

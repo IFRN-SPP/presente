@@ -82,6 +82,16 @@ class ActivityAttendanceTable(django_tables2.Table):
         verbose_name=_("Tipo"),
         orderable=True,
     )
+    user_curso = django_tables2.Column(
+        accessor="user__curso",
+        verbose_name=_("Curso"),
+        orderable=True,
+    )
+    user_periodo_referencia = django_tables2.Column(
+        accessor="user__periodo_referencia",
+        verbose_name=_("Período de Referência"),
+        orderable=True,
+    )
     checked_in_at = django_tables2.DateTimeColumn(
         verbose_name=_("Presença Registrada em"),
         format="d/m/Y H:i:s",
@@ -98,12 +108,22 @@ class ActivityAttendanceTable(django_tables2.Table):
         """Render user's full name"""
         return record.user.get_full_name()
 
+    def render_user_curso(self, record):
+        """Render user's curso"""
+        return record.user.curso or "-"
+
+    def render_user_periodo_referencia(self, record):
+        """Render user's periodo_referencia"""
+        return record.user.periodo_referencia or "-"
+
     class Meta:
         model = Attendance
         fields = (
             "user_name",
             "user_email",
             "user_type",
+            "user_curso",
+            "user_periodo_referencia",
             "checked_in_at",
         )
         order_by = "-checked_in_at"

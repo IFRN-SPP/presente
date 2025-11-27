@@ -1,5 +1,27 @@
 {% extends "core/detail.html" %}
 
+{% block card_footer_actions %}
+<a href="{% url 'presente:activity_attendances' object.pk %}" class="btn btn-info me-2">
+  <i class="bi bi-people"></i> Ver Presenças
+</a>
+{% if "change" in allowed_actions %}
+<a href="{% url allowed_actions.change object.id %}" class="btn btn-primary me-2">
+  <i class="bi bi-pencil"></i> Editar
+</a>
+{% endif %}
+{% if "delete" in allowed_actions %}
+<button
+  hx-get="{% url allowed_actions.delete object.id %}"
+  hx-target=".modal-content"
+  hx-trigger="click"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+  class="btn btn-danger">
+  <i class="bi bi-trash"></i> Remover
+</button>
+{% endif %}
+{% endblock %}
+
 {% block app_content %}
 {{ block.super }}
 
@@ -19,23 +41,6 @@
             </button>
           </div>
           <small class="text-muted">Os participantes poderão acessar este link e escanear o QR Code para registrar presença.</small>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-3">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-people"></i> Presenças</h5>
-          <span class="badge bg-light text-dark">{{ attendances|length }} participante{{ attendances|length|pluralize }}</span>
-        </div>
-        <div class="card-body text-center py-4">
-          <p class="mb-3">Visualize a lista completa de presenças registradas para esta atividade</p>
-          <a href="{% url 'presente:activity_attendances' object.pk %}" class="btn btn-primary">
-            <i class="bi bi-list-ul"></i> Ver Presenças
-          </a>
         </div>
       </div>
     </div>

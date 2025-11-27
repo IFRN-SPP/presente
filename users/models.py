@@ -38,6 +38,20 @@ class User(AbstractUser):
         default=False,
         help_text=_("Indica se o usuário foi criado via login SUAP"),
     )
+    curso = models.CharField(
+        _("Curso"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Curso do aluno (apenas para tipo ALUNO)"),
+    )
+    periodo_referencia = models.CharField(
+        _("Período de Referência"),
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text=_("Período de referência do aluno (apenas para tipo ALUNO)"),
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
