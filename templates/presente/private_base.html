@@ -44,12 +44,14 @@
             <li><a class="dropdown-item" href="{% url 'users:user_profile' %}">
               <i class="bi bi-person-fill me-2"></i>
                 Perfil</a></li>
+            {% if not user.is_suap_user %}
             <li><a class="dropdown-item" href="{% url 'account_email' %}">
               <i class="bi bi-envelope-at-fill me-2"></i>
                 Alterar Email</a></li>
             <li><a class="dropdown-item" href="{% url 'account_change_password' %}">
               <i class="bi bi-key-fill me-2"></i>
                 Alterar Senha</a></li>
+            {% endif %}
             <li><hr class="dropdown-divider"></li>
             <li>
               <form action="{% url 'account_logout' %}" method="post">

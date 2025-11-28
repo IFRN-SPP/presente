@@ -1,4 +1,8 @@
-from allauth.account.views import PasswordResetFromKeyView
+from allauth.account.views import (
+    PasswordResetFromKeyView,
+    EmailView,
+    PasswordChangeView,
+)
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
@@ -113,6 +117,38 @@ class UserProfileUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):
                 _(
                     "Seu perfil é gerenciado pelo SUAP e não pode ser editado manualmente. "
                     "Os dados são atualizados automaticamente a cada login."
+                ),
+            )
+            return redirect("users:user_profile")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CustomEmailView(EmailView):
+    """Custom email view that prevents SUAP users from changing email"""
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_suap_user:
+            messages.warning(
+                request,
+                _(
+                    "Usuários SUAP não podem alterar o email. "
+                    "Esta informação é gerenciada pelo SUAP."
+                ),
+            )
+            return redirect("users:user_profile")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CustomPasswordChangeView(PasswordChangeView):
+    """Custom password change view that prevents SUAP users from changing password"""
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_suap_user:
+            messages.warning(
+                request,
+                _(
+                    "Usuários SUAP não podem alterar a senha. "
+                    "Use o sistema SUAP para gerenciar sua senha."
                 ),
             )
             return redirect("users:user_profile")

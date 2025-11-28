@@ -8,6 +8,7 @@ class UserTable(CoreTable):
     full_name = tables.Column(verbose_name=_("Nome"), empty_values=())
     matricula = tables.Column(verbose_name=_("Matrícula"), empty_values=())
     type = tables.Column(verbose_name=_("Tipo"), empty_values=())
+    campus = tables.Column(verbose_name=_("Campus"), empty_values=())
     curso = tables.Column(verbose_name=_("Curso"), empty_values=())
     periodo_referencia = tables.Column(
         verbose_name=_("Período de Referência"), empty_values=()
@@ -27,6 +28,9 @@ class UserTable(CoreTable):
             return record.get_type_display()
         return "-"
 
+    def render_campus(self, record):
+        return record.campus or "-"
+
     def render_curso(self, record):
         return record.curso or "-"
 
@@ -40,6 +44,7 @@ class UserTable(CoreTable):
             "email",
             "matricula",
             "type",
+            "campus",
             "curso",
             "periodo_referencia",
             "last_login",

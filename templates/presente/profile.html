@@ -63,6 +63,18 @@
                 </div>
               </div>
             </div>
+            <div class="col-12">
+              <div class="detail-field">
+                <label class="text-muted small text-uppercase mb-1">Campus</label>
+                <div class="detail-value">
+                  {% if user.campus %}
+                    {{ user.campus }}
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
             {% endif %}
             {% if user.type == "ALUNO" %}
             <div class="col-12">

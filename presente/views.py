@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
@@ -20,7 +21,7 @@ from core.views import (
 )
 from .models import Activity, Attendance
 from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
-from .forms import ActivityForm
+from .forms import ActivityForm, AttendancePrintConfigForm
 from .filters import ActivityFilter, AttendanceFilter, ActivityAttendanceFilter
 from .utils import (
     encode_activity_id,
@@ -55,6 +56,28 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
         return context
 
 
+class MyActivitiesView(
+    AutoPermissionRequiredMixin,
+    AllowedActionsMixin,
+    PageTitleMixin,
+    SingleTableMixin,
+    FilterView,
+):
+    """View showing only activities where the current user is an owner"""
+
+    page_title = _("Minhas Atividades")
+    paginate_by = 10
+    model = Activity
+    table_class = ActivityTable
+    filterset_class = ActivityFilter
+    template_name = "core/list.html"
+    permission_action = "view"
+
+    def get_queryset(self):
+        # Always filter by current user as owner, even for superusers
+        return Activity.objects.filter(owners=self.request.user)
+
+
 class ActivityListView(
     AutoPermissionRequiredMixin,
     AllowedActionsMixin,
@@ -62,6 +85,8 @@ class ActivityListView(
     SingleTableMixin,
     FilterView,
 ):
+    """View showing all activities (for superusers in admin section)"""
+
     page_title = _("Atividades")
     paginate_by = 10
     model = Activity
@@ -71,8 +96,10 @@ class ActivityListView(
     permission_action = "view"
 
     def get_queryset(self):
+        # Only superusers should access this view (all activities)
         if self.request.user.is_superuser:
             return Activity.objects.all()
+        # Regular users shouldn't reach this view, but fallback to owned activities
         return Activity.objects.filter(owners=self.request.user)
 
 
@@ -116,6 +143,7 @@ class ActivityDetailView(CoreDetailView):
         context = super().get_context_data(**kwargs)
         context["attendances"] = self.object.attendances.select_related("user").all()
         context["encoded_id"] = encode_activity_id(self.object.id)
+        context["is_expired"] = self.object.is_expired()
         return context
 
 
@@ -142,6 +170,17 @@ class ActivityDeleteView(CoreDeleteView):
 # Public views for attendance
 
 
+def get_client_ip(request):
+    """Get client IP address from request, considering proxy headers"""
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        # X-Forwarded-For can contain multiple IPs, get the first one
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return ip
+
+
 class PublicActivityView(TemplateView):
     """Public page showing activity details and QR code for check-in"""
 
@@ -154,12 +193,26 @@ class PublicActivityView(TemplateView):
 
         activity = get_object_or_404(Activity, id=activity_id, is_published=True)
 
+        # Check IP restriction
+        client_ip = get_client_ip(request)
+        if not activity.is_ip_allowed(client_ip):
+            return render(
+                request,
+                "presente/ip_restricted.html",
+                {
+                    "activity": activity,
+                    "client_ip": client_ip,
+                },
+                status=403,
+            )
+
         return render(
             request,
             self.template_name,
             {
                 "activity": activity,
                 "encoded_id": encoded_id,
+                "is_expired": activity.is_expired(),
             },
         )
 
@@ -173,6 +226,13 @@ class ActivityQRCodeView(View):
             return render(request, "presente/includes/qr_error.html", status=404)
 
         activity = get_object_or_404(Activity, id=activity_id, is_published=True)
+
+        # Check if activity has expired
+        if activity.is_expired():
+            return render(
+                request, "presente/includes/qr_expired.html", {"activity": activity}
+            )
+
         checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
         checkin_path = reverse("presente:checkin", kwargs={"token": checkin_token})
         checkin_url = request.build_absolute_uri(checkin_path)
@@ -204,6 +264,67 @@ class CheckInView(LoginRequiredMixin, View):
             )
 
         activity = get_object_or_404(Activity, id=activity_id)
+
+        # Check IP restriction
+        client_ip = get_client_ip(request)
+        if not activity.is_ip_allowed(client_ip):
+            messages.error(
+                request,
+                _(
+                    "Acesso negado. Seu IP não tem permissão para registrar presença nesta atividade."
+                ),
+            )
+            return render(
+                request,
+                "presente/checkin_error.html",
+                {
+                    "error": _(
+                        "Acesso negado. Seu IP não tem permissão para registrar presença nesta atividade."
+                    ),
+                    "activity": activity,
+                    "encoded_id": encode_activity_id(activity.id),
+                },
+            )
+
+        # Check if activity hasn't started yet
+        if activity.is_not_started():
+            messages.error(
+                request,
+                _(
+                    "Esta atividade ainda não começou. Não é possível registrar presença."
+                ),
+            )
+            return render(
+                request,
+                "presente/checkin_error.html",
+                {
+                    "error": _(
+                        "Esta atividade ainda não começou. Não é possível registrar presença."
+                    ),
+                    "activity": activity,
+                    "encoded_id": encode_activity_id(activity.id),
+                },
+            )
+
+        # Check if activity has expired
+        if activity.is_expired():
+            messages.error(
+                request,
+                _(
+                    "Esta atividade já encerrou. Não é mais possível registrar presença."
+                ),
+            )
+            return render(
+                request,
+                "presente/checkin_error.html",
+                {
+                    "error": _(
+                        "Esta atividade já encerrou. Não é mais possível registrar presença."
+                    ),
+                    "activity": activity,
+                    "encoded_id": encode_activity_id(activity.id),
+                },
+            )
 
         # Verify token with activity's timeout
         activity_id_verified = verify_checkin_token(token, activity.qr_timeout)
@@ -276,7 +397,7 @@ class ActivityAttendanceListView(
     model = Attendance
     table_class = ActivityAttendanceTable
     filterset_class = ActivityAttendanceFilter
-    template_name = "core/list.html"
+    template_name = "presente/activity_attendance_list.html"
     paginate_by = 20
     context_object_name = "attendances"
     actions = ["delete"]
@@ -350,3 +471,122 @@ class AttendanceDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
         if not self.request.htmx:
             return [self.template_name]
         return [self.template_name_modal]
+
+
+class ActivityAttendancePrintConfigView(
+    LoginRequiredMixin,
+    TemplateView,
+):
+    """Configuration modal for attendance print report"""
+
+    template_name = "presente/includes/attendance_print_config_modal.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+
+        # Check if user is owner or superuser
+        if (
+            not self.request.user.is_superuser
+            and not activity.owners.filter(pk=self.request.user.pk).exists()
+        ):
+            raise Http404(
+                "Você não tem permissão para ver as presenças desta atividade"
+            )
+
+        context["activity"] = activity
+        context["form"] = AttendancePrintConfigForm()
+
+        # Convert GET params to dict for easier template iteration
+        filter_params = {}
+        for key, value in self.request.GET.items():
+            if key not in ["columns", "sort_by"]:
+                filter_params[key] = value
+        context["filter_params"] = filter_params
+
+        return context
+
+
+class ActivityAttendancePrintView(
+    LoginRequiredMixin,
+    FilterView,
+):
+    """Print-friendly view for activity attendances"""
+
+    model = Attendance
+    filterset_class = ActivityAttendanceFilter
+    template_name = "presente/attendance_print.html"
+    context_object_name = "attendances"
+
+    def get_queryset(self):
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+
+        # Check if user is owner or superuser (only owners and superusers can view attendances)
+        if (
+            not self.request.user.is_superuser
+            and not activity.owners.filter(pk=self.request.user.pk).exists()
+        ):
+            raise Http404(
+                "Você não tem permissão para ver as presenças desta atividade"
+            )
+
+        # Get base queryset
+        qs = Attendance.objects.filter(activity=activity).select_related("user")
+
+        # Apply sorting from configuration
+        sort_by = self.request.GET.get("sort_by", "name")
+        if sort_by:
+            # Map sort fields to actual model fields
+            sort_mapping = {
+                "name": "user__full_name",
+                "-name": "-user__full_name",
+                "type": "user__type",
+                "-type": "-user__type",
+                "curso": "user__curso",
+                "-curso": "-user__curso",
+                "checked_in_at": "checked_in_at",
+                "-checked_in_at": "-checked_in_at",
+            }
+            sort_field = sort_mapping.get(sort_by, "user__full_name")
+            qs = qs.order_by(sort_field)
+        else:
+            qs = qs.order_by("user__full_name")
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        context["activity"] = activity
+
+        # Get the filtered queryset (after filters are applied)
+        filtered_qs = context["filter"].qs
+        context["total_attendances"] = filtered_qs.count()
+
+        # Get column configuration
+        columns = self.request.GET.getlist("columns")
+        if not columns:
+            columns = ["number", "name", "matricula", "checked_in_at"]
+        context["columns"] = columns
+
+        # Get sort configuration
+        context["sort_by"] = self.request.GET.get("sort_by", "name")
+
+        # Get filter information for display
+        filter_info = []
+        filter_data = self.request.GET
+
+        if filter_data.get("user__full_name"):
+            filter_info.append(f"Nome: {filter_data['user__full_name']}")
+        if filter_data.get("user__type"):
+            type_display = dict(User.UserType.choices).get(filter_data["user__type"])
+            filter_info.append(f"Tipo: {type_display}")
+        if filter_data.get("user__curso"):
+            filter_info.append(f"Curso: {filter_data['user__curso']}")
+        if filter_data.get("user__periodo_referencia"):
+            filter_info.append(f"Período: {filter_data['user__periodo_referencia']}")
+
+        context["filter_info"] = filter_info
+        context["generated_at"] = timezone.now()
+
+        return context

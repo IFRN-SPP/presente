@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 from .models import Activity
 
 User = get_user_model()
@@ -23,6 +24,8 @@ class ActivityForm(forms.ModelForm):
             "end_time",
             "qr_timeout",
             "is_published",
+            "restrict_ip",
+            "allowed_networks",
             "owners",
         ]
         widgets = {
@@ -45,6 +48,10 @@ class ActivityForm(forms.ModelForm):
                 attrs={"class": "form-control", "min": "10"}
             ),
             "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "restrict_ip": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "allowed_networks": forms.Textarea(
+                attrs={"class": "form-control", "rows": "5"}
+            ),
             "owners": forms.SelectMultiple(
                 attrs={"class": "form-control", "data-tom-select": "users"}
             ),
@@ -78,6 +85,8 @@ class ActivityForm(forms.ModelForm):
                 "end_time",
                 "qr_timeout",
                 "is_published",
+                "restrict_ip",
+                "allowed_networks",
                 "owners",
             ]
         )
@@ -98,3 +107,52 @@ class ActivityForm(forms.ModelForm):
                 instance.tags.clear()
 
         return instance
+
+
+class AttendancePrintConfigForm(forms.Form):
+    """Form for configuring attendance print report"""
+
+    COLUMN_CHOICES = [
+        ("number", _("Número")),
+        ("name", _("Nome")),
+        ("email", _("Email")),
+        ("matricula", _("Matrícula")),
+        ("type", _("Tipo")),
+        ("curso", _("Curso")),
+        ("periodo", _("Período")),
+        ("checked_in_at", _("Data/Hora de Registro")),
+    ]
+
+    SORT_CHOICES = [
+        ("name", _("Nome (A-Z)")),
+        ("-name", _("Nome (Z-A)")),
+        ("checked_in_at", _("Data de Registro (Mais Antiga)")),
+        ("-checked_in_at", _("Data de Registro (Mais Recente)")),
+        ("type", _("Tipo (A-Z)")),
+        ("-type", _("Tipo (Z-A)")),
+        ("curso", _("Curso (A-Z)")),
+        ("-curso", _("Curso (Z-A)")),
+    ]
+
+    columns = forms.MultipleChoiceField(
+        choices=COLUMN_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label=_("Colunas a Exibir"),
+        initial=["number", "name", "matricula", "checked_in_at"],
+        required=False,
+    )
+
+    sort_by = forms.ChoiceField(
+        choices=SORT_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Ordenar Por"),
+        initial="name",
+        required=False,
+    )
+
+    def clean_columns(self):
+        columns = self.cleaned_data.get("columns")
+        if not columns:
+            # Default columns if none selected
+            return ["number", "name", "matricula", "checked_in_at"]
+        return columns

@@ -52,6 +52,13 @@ class User(AbstractUser):
         null=True,
         help_text=_("Período de referência do aluno (apenas para tipo ALUNO)"),
     )
+    campus = models.CharField(
+        _("Campus"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Campus do usuário no IFRN"),
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

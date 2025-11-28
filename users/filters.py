@@ -27,6 +27,11 @@ class UserFilter(django_filters.FilterSet):
             attrs={"class": "form-select", "data-tom-select": "simple"}
         ),
     )
+    campus = django_filters.CharFilter(
+        lookup_expr="icontains",
+        label=_("Campus"),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
     curso = django_filters.CharFilter(
         lookup_expr="icontains",
         label=_("Curso"),
@@ -49,6 +54,7 @@ class UserFilter(django_filters.FilterSet):
             "first_name",
             "last_name",
             "type",
+            "campus",
             "curso",
             "periodo_referencia",
             "is_active",

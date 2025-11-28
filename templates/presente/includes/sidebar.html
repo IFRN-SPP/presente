@@ -7,7 +7,7 @@
       <img
         src="{% static 'img/presente-icon.svg' %}"
         alt="Presente Icon"
-        class="brand-image opacity-75 shadow"
+        class="brand-image shadow"
         style="max-height: 40px;"
       />
       <span class="brand-text fw-light" style="color: white;">presente!</span>
@@ -27,7 +27,7 @@
       >
         {% generate_menu %}
         {% for item in menus.presente  %}
-        {% if forloop.counter == 3 %}
+        {% if forloop.counter == 4 %}
         <li class="nav-header border-top mt-2 pt-2">ADMINISTRAÇÃO</li>
         {% endif %}
         <li class="nav-item {% if item.selected and item.children %}menu-open{% endif %}">

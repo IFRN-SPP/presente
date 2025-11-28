@@ -18,6 +18,13 @@
 
     <div class="activity-body">
       <div class="qr-section">
+        {% if is_expired %}
+        <div class="alert alert-warning text-center">
+          <i class="bi bi-clock-history fs-1 d-block mb-3"></i>
+          <h5>Atividade Encerrada</h5>
+          <p class="mb-0">Esta atividade já encerrou. Não é mais possível registrar presença.</p>
+        </div>
+        {% else %}
         <div class="qr-title">Registrar Presença</div>
 
         <div id="qr-code-container"
@@ -28,8 +35,44 @@
             <span class="visually-hidden">Carregando...</span>
           </div>
         </div>
+        <div id="qr-error-container" style="display: none;">
+          <div class="alert alert-danger text-center">
+            <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+            <h5>Erro de Conexão</h5>
+            <p class="mb-2">Não foi possível carregar o QR Code. Verifique sua conexão com a internet.</p>
+            <button class="btn btn-primary" onclick="location.reload()">
+              <i class="bi bi-arrow-clockwise"></i> Tentar Novamente
+            </button>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const qrContainer = document.getElementById('qr-code-container');
+  const errorContainer = document.getElementById('qr-error-container');
+
+  if (qrContainer) {
+    // Listen for HTMX errors
+    qrContainer.addEventListener('htmx:responseError', function(event) {
+      qrContainer.style.display = 'none';
+      errorContainer.style.display = 'block';
+    });
+
+    qrContainer.addEventListener('htmx:sendError', function(event) {
+      qrContainer.style.display = 'none';
+      errorContainer.style.display = 'block';
+    });
+
+    qrContainer.addEventListener('htmx:timeout', function(event) {
+      qrContainer.style.display = 'none';
+      errorContainer.style.display = 'block';
+    });
+  }
+});
+</script>
 {% endblock %}

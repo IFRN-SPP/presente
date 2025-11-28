@@ -1,0 +1,73 @@
+{% load i18n %}
+
+<div class="modal-header bg-primary text-white">
+  <h5 class="modal-title">
+    <i class="bi bi-gear"></i> Configurações do Relatório
+  </h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <form method="get" action="{% url 'presente:activity_attendance_print' activity.pk %}" id="printConfigForm" target="_blank">
+
+    <!-- Preserve filter parameters -->
+    {% for key, value in filter_params.items %}
+      {% if key not in "columns,sort_by" %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+      {% endif %}
+    {% endfor %}
+
+    <div class="mb-4">
+      <label class="form-label fw-bold">
+        <i class="bi bi-table"></i> Colunas a Exibir
+      </label>
+      <p class="text-muted small mb-3">Selecione as colunas que deseja incluir no relatório</p>
+
+      <div class="row">
+        {% for value, label in form.columns.field.choices %}
+        <div class="col-md-6 mb-2">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="columns"
+              value="{{ value }}"
+              id="modal_col_{{ value }}"
+              {% if value in form.fields.columns.initial %}checked{% endif %}
+            >
+            <label class="form-check-label" for="modal_col_{{ value }}">
+              {{ label }}
+            </label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label for="modal_sort_by" class="form-label fw-bold">
+        <i class="bi bi-sort-down"></i> Ordenar Por
+      </label>
+      <p class="text-muted small mb-2">Escolha como ordenar as presenças no relatório</p>
+      <select name="sort_by" id="modal_sort_by" class="form-select">
+        {% for value, label in form.sort_by.field.choices %}
+        <option value="{{ value }}" {% if value == form.fields.sort_by.initial %}selected{% endif %}>
+          {{ label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="alert alert-info mb-0">
+      <i class="bi bi-info-circle"></i>
+      <strong>Dica:</strong> Após gerar o relatório, você pode usar a função de impressão do navegador (Ctrl+P) para salvar como PDF.
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+    <i class="bi bi-x-circle"></i> Cancelar
+  </button>
+  <button type="submit" form="printConfigForm" class="btn btn-primary">
+    <i class="bi bi-file-earmark-text"></i> Gerar Relatório
+  </button>
+</div>

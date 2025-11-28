@@ -20,25 +20,17 @@ Menu.add_item(
     ),
 )
 
-# submenu_items = [
-#     MenuItem("Informações", reverse("cms:publication_detail"), icon="bi bi-circle"),
-#     MenuItem(
-#         "Redes Sociais",
-#         reverse("cms:socialmedia_list"),
-#         icon="bi bi-circle",
-#         check=lambda r: r.user.has_perm("cms.view_socialmedia"),
-#     ),
-# ]
-# Menu.add_item(
-#     "cms",
-#     MenuItem(
-#         "Publicação",
-#         "#",
-#         icon="bi bi-journals",
-#         children=submenu_items,
-#         check=lambda r: r.user.has_perm("cms.view_publication"),
-#     ),
-# )
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Minhas Atividades",
+        reverse("presente:my_activities"),
+        icon="bi bi-list-check",
+        check=lambda r: r.user.has_perm("presente.view_activity"),
+    ),
+)
+
+# ADMINISTRAÇÃO section starts here (items below appear under "ADMINISTRAÇÃO" header)
 
 Menu.add_item(
     "presente",
@@ -46,7 +38,7 @@ Menu.add_item(
         "Atividades",
         reverse("presente:activity_list"),
         icon="bi bi-list-check",
-        check=lambda r: r.user.has_perm("presente.view_activity"),
+        check=lambda r: r.user.is_superuser,
     ),
 )
 

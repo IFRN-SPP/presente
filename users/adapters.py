@@ -39,6 +39,11 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         if foto:
             user.avatar_url = foto
 
+        # Campus
+        campus = extra_data.get("campus")
+        if campus:
+            user.campus = campus
+
         # Mark as SUAP user
         user.is_suap_user = True
 
@@ -47,11 +52,17 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None):
         """
         Override to update user data on every login, not just on signup.
+        This ensures that all user data is refreshed from SUAP on each login.
         """
         user = super().save_user(request, sociallogin, form)
 
         # Update user data from SUAP on every login
         extra_data = sociallogin.account.extra_data
+
+        # Update email (in case it changed)
+        email = extra_data.get("email", "")
+        if email:
+            user.email = email
 
         # Update basic fields
         user.first_name = extra_data.get("primeiro_nome", "")
@@ -64,7 +75,7 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         if nome_completo:
             user.full_name = nome_completo
 
-        # Update user type
+        # Update user type (in case it changed - e.g., student became staff)
         tipo_usuario = extra_data.get("tipo_usuario", "")
         if "Servidor" in tipo_usuario:
             user.type = "SERVIDOR"
@@ -76,6 +87,11 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         if foto:
             user.avatar_url = foto
 
+        # Update campus
+        campus = extra_data.get("campus")
+        if campus:
+            user.campus = campus
+
         # Mark as SUAP user
         user.is_suap_user = True
 
@@ -84,10 +100,14 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
             try:
                 import requests
 
+                # Get SUAP_URL from the provider configuration
+                suap_url = settings.SOCIALACCOUNT_PROVIDERS.get("suap", {}).get(
+                    "SUAP_URL", "https://suap.ifrn.edu.br"
+                )
                 token = sociallogin.token.token
                 headers = {"Authorization": f"Bearer {token}"}
                 response = requests.get(
-                    f"{settings.SUAP_URL}/api/ensino/meus-dados-aluno/",
+                    f"{suap_url}/api/ensino/meus-dados-aluno/",
                     headers=headers,
                     timeout=10,
                 )
@@ -98,6 +118,10 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
             except Exception:
                 # If the API call fails, just continue without the student data
                 pass
+        else:
+            # Clear student data if user is not ALUNO anymore
+            user.curso = ""
+            user.periodo_referencia = ""
 
         user.save()
         return user

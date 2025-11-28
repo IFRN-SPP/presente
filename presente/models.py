@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from taggit.managers import TaggableManager
 
 User = get_user_model()
@@ -35,9 +36,70 @@ class Activity(models.Model):
             "Tempo de validade de cada QR Code para registro de presença (em segundos)"
         ),
     )
+    restrict_ip = models.BooleanField(
+        _("Restringir por IP"),
+        default=False,
+        help_text=_("Ativar restrição de acesso por endereço IP"),
+    )
+    allowed_networks = models.TextField(
+        _("Redes permitidas"),
+        blank=True,
+        null=True,
+        help_text=_(
+            "IPs ou redes permitidas (um por linha). "
+            "Exemplo: 192.168.1.0/24 ou 10.0.0.1"
+        ),
+    )
 
     def __str__(self):
         return self.title
+
+    def is_expired(self):
+        """Check if the activity has ended (past end_time)"""
+        return timezone.now() > self.end_time
+
+    def is_not_started(self):
+        """Check if the activity hasn't started yet (before start_time)"""
+        return timezone.now() < self.start_time
+
+    def is_ip_allowed(self, client_ip):
+        """Check if client IP is allowed to access this activity"""
+        # If IP restriction is disabled, allow all
+        if not self.restrict_ip:
+            return True
+
+        # If no networks configured, deny all (when restriction is enabled)
+        if not self.allowed_networks:
+            return False
+
+        from ipaddress import ip_address, ip_network
+
+        try:
+            client_addr = ip_address(client_ip)
+
+            # Parse allowed networks (one per line)
+            networks = [
+                n.strip() for n in self.allowed_networks.split("\n") if n.strip()
+            ]
+
+            for network in networks:
+                try:
+                    # Try to match as network (CIDR notation)
+                    if "/" in network:
+                        if client_addr in ip_network(network, strict=False):
+                            return True
+                    # Match as individual IP
+                    else:
+                        if client_addr == ip_address(network):
+                            return True
+                except ValueError:
+                    # Invalid network configuration, skip
+                    continue
+
+            return False
+        except ValueError:
+            # Invalid client IP, deny access
+            return False
 
     class Meta:
         verbose_name = _("Atividade")
