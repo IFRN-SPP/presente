@@ -11,14 +11,13 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.shortcuts import redirect
-from django_filters.views import FilterView
-from django_tables2 import SingleTableMixin
-from core.mixins import PageTitleMixin, AutoPermissionRequiredMixin, AllowedActionsMixin
+from core.mixins import PageTitleMixin
 from core.views import (
     CoreCreateView,
     CoreDetailView,
     CoreUpdateView,
     CoreDeleteView,
+    CoreFilterView,
 )
 from .tables import UserTable
 from .filters import UserFilter
@@ -38,21 +37,11 @@ class CustomPasswordResetFromKeyView(PasswordResetFromKeyView):
     success_url = reverse_lazy("account_login")
 
 
-class UserListView(
-    ExcludeAdminMixin,
-    AutoPermissionRequiredMixin,
-    AllowedActionsMixin,
-    PageTitleMixin,
-    SingleTableMixin,
-    FilterView,
-):
+class UserListView(ExcludeAdminMixin, CoreFilterView):
     page_title = _("Usuários")
-    paginate_by = 10
     model = User
     table_class = UserTable
     filterset_class = UserFilter
-    template_name = "core/list.html"
-    permission_action = "view"
 
     def get_queryset(self):
         queryset = super().get_queryset()

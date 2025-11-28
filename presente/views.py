@@ -12,12 +12,13 @@ from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin
-from core.mixins import PageTitleMixin, AutoPermissionRequiredMixin, AllowedActionsMixin
+from core.mixins import PageTitleMixin, AllowedActionsMixin
 from core.views import (
     CoreCreateView,
     CoreDetailView,
     CoreUpdateView,
     CoreDeleteView,
+    CoreFilterView,
 )
 from .models import Activity, Attendance
 from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
@@ -56,44 +57,26 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
         return context
 
 
-class MyActivitiesView(
-    AutoPermissionRequiredMixin,
-    AllowedActionsMixin,
-    PageTitleMixin,
-    SingleTableMixin,
-    FilterView,
-):
+class MyActivitiesView(CoreFilterView):
     """View showing only activities where the current user is an owner"""
 
     page_title = _("Minhas Atividades")
-    paginate_by = 10
     model = Activity
     table_class = ActivityTable
     filterset_class = ActivityFilter
-    template_name = "core/list.html"
-    permission_action = "view"
 
     def get_queryset(self):
         # Always filter by current user as owner, even for superusers
         return Activity.objects.filter(owners=self.request.user)
 
 
-class ActivityListView(
-    AutoPermissionRequiredMixin,
-    AllowedActionsMixin,
-    PageTitleMixin,
-    SingleTableMixin,
-    FilterView,
-):
+class ActivityListView(CoreFilterView):
     """View showing all activities (for superusers in admin section)"""
 
     page_title = _("Atividades")
-    paginate_by = 10
     model = Activity
     table_class = ActivityTable
     filterset_class = ActivityFilter
-    template_name = "core/list.html"
-    permission_action = "view"
 
     def get_queryset(self):
         # Only superusers should access this view (all activities)
@@ -193,17 +176,30 @@ class PublicActivityView(TemplateView):
 
         activity = get_object_or_404(Activity, id=activity_id, is_published=True)
 
-        # Check IP restriction
-        client_ip = get_client_ip(request)
-        if not activity.is_ip_allowed(client_ip):
+        # Check if activity has expired
+        if activity.is_expired():
             return render(
                 request,
-                "presente/ip_restricted.html",
+                "presente/checkin_error.html",
                 {
+                    "error": _(
+                        "Esta atividade já encerrou. Não é mais possível registrar presença."
+                    ),
                     "activity": activity,
-                    "client_ip": client_ip,
                 },
-                status=403,
+            )
+
+        # Check if activity hasn't started yet
+        if activity.is_not_started():
+            return render(
+                request,
+                "presente/checkin_error.html",
+                {
+                    "error": _(
+                        "Esta atividade ainda não iniciou. Aguarde o horário de início."
+                    ),
+                    "activity": activity,
+                },
             )
 
         return render(
@@ -212,7 +208,6 @@ class PublicActivityView(TemplateView):
             {
                 "activity": activity,
                 "encoded_id": encoded_id,
-                "is_expired": activity.is_expired(),
             },
         )
 
@@ -268,21 +263,18 @@ class CheckInView(LoginRequiredMixin, View):
         # Check IP restriction
         client_ip = get_client_ip(request)
         if not activity.is_ip_allowed(client_ip):
-            messages.error(
-                request,
-                _(
-                    "Acesso negado. Seu IP não tem permissão para registrar presença nesta atividade."
-                ),
-            )
+            error_msg = _(
+                "Acesso negado. Seu IP ({ip}) não tem permissão para registrar presença nesta atividade."
+            ).format(ip=client_ip)
+            messages.error(request, error_msg)
             return render(
                 request,
                 "presente/checkin_error.html",
                 {
-                    "error": _(
-                        "Acesso negado. Seu IP não tem permissão para registrar presença nesta atividade."
-                    ),
+                    "error": error_msg,
                     "activity": activity,
                     "encoded_id": encode_activity_id(activity.id),
+                    "client_ip": client_ip,
                 },
             )
 
@@ -342,7 +334,9 @@ class CheckInView(LoginRequiredMixin, View):
 
         # Check if user already checked in
         attendance, created = Attendance.objects.get_or_create(
-            activity=activity, user=request.user
+            activity=activity,
+            user=request.user,
+            defaults={"ip_address": client_ip},
         )
 
         if created:
@@ -374,7 +368,8 @@ class MyAttendancesView(
     table_class = AttendanceTable
     filterset_class = AttendanceFilter
     template_name = "core/list.html"
-    paginate_by = 20
+    paginate_by = None  # Disable FilterView pagination
+    table_pagination = {"per_page": 20}
 
     def get_queryset(self):
         return (
@@ -383,6 +378,11 @@ class MyAttendancesView(
             .prefetch_related("activity__tags")
             .order_by("-checked_in_at")
         )
+
+    def get_table_data(self):
+        """Return the filtered queryset for the table"""
+        filterset = self.get_filterset(self.get_filterset_class())
+        return filterset.qs
 
 
 class ActivityAttendanceListView(
@@ -398,7 +398,8 @@ class ActivityAttendanceListView(
     table_class = ActivityAttendanceTable
     filterset_class = ActivityAttendanceFilter
     template_name = "presente/activity_attendance_list.html"
-    paginate_by = 20
+    paginate_by = None  # Disable FilterView pagination
+    table_pagination = {"per_page": 20}
     context_object_name = "attendances"
     actions = ["delete"]
 
@@ -423,6 +424,11 @@ class ActivityAttendanceListView(
             .select_related("user")
             .order_by("-checked_in_at")
         )
+
+    def get_table_data(self):
+        """Return the filtered queryset for the table"""
+        filterset = self.get_filterset(self.get_filterset_class())
+        return filterset.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
