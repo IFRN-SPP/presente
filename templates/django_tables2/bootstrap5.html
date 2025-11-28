@@ -71,11 +71,16 @@
 </div>
 
 {% block pagination %}
-{% if table.page and table.paginator.num_pages > 1 %}
-    <div class="card-footer d-flex justify-content-between align-items-center">
+{% if table.page %}
+    <div class="card-footer d-flex justify-content-end align-items-center gap-3">
         <div class="text-muted small">
-            Mostrando {{ table.page.start_index }} a {{ table.page.end_index }} de {{ table.paginator.count }} resultados
+            {% if table.page.paginator.count > 0 %}
+                Mostrando {{ table.page.start_index }} a {{ table.page.end_index }} de {{ table.page.paginator.count }} resultados
+            {% else %}
+                Nenhum resultado encontrado
+            {% endif %}
         </div>
+        {% if table.page.paginator.num_pages > 1 %}
         <nav aria-label="Table pagination">
             <ul class="pagination pagination-sm mb-0">
                 {% if table.page.has_previous %}
@@ -83,6 +88,10 @@
                         <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">
                             &laquo;
                         </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
                     </li>
                 {% endif %}
 
@@ -104,9 +113,14 @@
                             &raquo;
                         </a>
                     </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
                 {% endif %}
             </ul>
         </nav>
+        {% endif %}
     </div>
 {% endif %}
 {% endblock pagination %}

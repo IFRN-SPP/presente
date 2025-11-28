@@ -49,8 +49,8 @@ class ActivityForm(forms.ModelForm):
             ),
             "is_published": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "restrict_ip": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "allowed_networks": forms.Textarea(
-                attrs={"class": "form-control", "rows": "5"}
+            "allowed_networks": forms.CheckboxSelectMultiple(
+                attrs={"class": "form-check-input"}
             ),
             "owners": forms.SelectMultiple(
                 attrs={"class": "form-control", "data-tom-select": "users"}
@@ -121,6 +121,7 @@ class AttendancePrintConfigForm(forms.Form):
         ("curso", _("Curso")),
         ("periodo", _("Período")),
         ("checked_in_at", _("Data/Hora de Registro")),
+        ("ip_address", _("Endereço IP")),
     ]
 
     SORT_CHOICES = [

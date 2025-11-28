@@ -232,6 +232,7 @@
         {% if "curso" in columns %}<th style="width: 25%;">Curso</th>{% endif %}
         {% if "periodo" in columns %}<th style="width: 12%;">Período</th>{% endif %}
         {% if "checked_in_at" in columns %}<th style="width: 15%;">Registrado em</th>{% endif %}
+        {% if "ip_address" in columns %}<th style="width: 12%;">IP</th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -261,6 +262,7 @@
           </td>
         {% endif %}
         {% if "checked_in_at" in columns %}<td>{{ attendance.checked_in_at|date:"d/m/Y H:i" }}</td>{% endif %}
+        {% if "ip_address" in columns %}<td>{{ attendance.get_network_name }}</td>{% endif %}
       </tr>
       {% endfor %}
     </tbody>

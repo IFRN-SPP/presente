@@ -7,6 +7,42 @@ from taggit.managers import TaggableManager
 User = get_user_model()
 
 
+class Network(models.Model):
+    """Network/IP configuration for activity access restriction"""
+
+    name = models.CharField(
+        _("Nome"),
+        max_length=100,
+        unique=True,
+        help_text=_("Nome identificador da rede (ex: 'Campus Natal Central')"),
+    )
+    description = models.TextField(
+        _("Descrição"),
+        blank=True,
+        help_text=_("Descrição opcional da rede"),
+    )
+    ip_addresses = models.TextField(
+        _("Endereços IP/Redes"),
+        help_text=_(
+            "IPs ou redes permitidas (um por linha). "
+            "Exemplo: 192.168.1.0/24 ou 10.0.0.1"
+        ),
+    )
+    is_active = models.BooleanField(
+        _("Ativo"),
+        default=True,
+        help_text=_("Desmarque para desativar temporariamente esta rede"),
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("Rede")
+        verbose_name_plural = _("Redes")
+        ordering = ["name"]
+
+
 class Activity(models.Model):
     owners = models.ManyToManyField(
         User,
@@ -41,14 +77,11 @@ class Activity(models.Model):
         default=False,
         help_text=_("Ativar restrição de acesso por endereço IP"),
     )
-    allowed_networks = models.TextField(
-        _("Redes permitidas"),
+    allowed_networks = models.ManyToManyField(
+        Network,
+        verbose_name=_("Redes permitidas"),
         blank=True,
-        null=True,
-        help_text=_(
-            "IPs ou redes permitidas (um por linha). "
-            "Exemplo: 192.168.1.0/24 ou 10.0.0.1"
-        ),
+        help_text=_("Selecione as redes que podem acessar esta atividade"),
     )
 
     def __str__(self):
@@ -64,41 +97,76 @@ class Activity(models.Model):
 
     def is_ip_allowed(self, client_ip):
         """Check if client IP is allowed to access this activity"""
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         # If IP restriction is disabled, allow all
         if not self.restrict_ip:
+            logger.debug(
+                f"IP restriction disabled for activity {self.id}, allowing {client_ip}"
+            )
             return True
 
+        # Get active networks for this activity
+        active_networks = self.allowed_networks.filter(is_active=True)
+
         # If no networks configured, deny all (when restriction is enabled)
-        if not self.allowed_networks:
+        if not active_networks.exists():
+            logger.warning(
+                f"IP restriction enabled but no active networks configured for activity {self.id}, denying {client_ip}"
+            )
             return False
 
         from ipaddress import ip_address, ip_network
 
         try:
             client_addr = ip_address(client_ip)
+            logger.debug(f"Checking IP {client_ip} for activity {self.id}")
 
-            # Parse allowed networks (one per line)
-            networks = [
-                n.strip() for n in self.allowed_networks.split("\n") if n.strip()
-            ]
+            # Check against each configured network
+            for network_config in active_networks:
+                logger.debug(f"Checking against network: {network_config.name}")
 
-            for network in networks:
-                try:
-                    # Try to match as network (CIDR notation)
-                    if "/" in network:
-                        if client_addr in ip_network(network, strict=False):
-                            return True
-                    # Match as individual IP
-                    else:
-                        if client_addr == ip_address(network):
-                            return True
-                except ValueError:
-                    # Invalid network configuration, skip
-                    continue
+                # Parse IP addresses from the network config (one per line)
+                ip_list = [
+                    ip.strip()
+                    for ip in network_config.ip_addresses.split("\n")
+                    if ip.strip()
+                ]
 
+                for ip_entry in ip_list:
+                    try:
+                        # Try to match as network (CIDR notation)
+                        if "/" in ip_entry:
+                            network_obj = ip_network(ip_entry, strict=False)
+                            if client_addr in network_obj:
+                                logger.info(
+                                    f"IP {client_ip} matched network {ip_entry} in {network_config.name} for activity {self.id}"
+                                )
+                                return True
+                        # Match as individual IP
+                        else:
+                            ip_addr = ip_address(ip_entry)
+                            if client_addr == ip_addr:
+                                logger.info(
+                                    f"IP {client_ip} matched individual IP {ip_entry} in {network_config.name} for activity {self.id}"
+                                )
+                                return True
+                    except ValueError as e:
+                        # Invalid IP configuration, skip
+                        logger.error(
+                            f"Invalid IP '{ip_entry}' in network {network_config.name}: {e}"
+                        )
+                        continue
+
+            logger.warning(
+                f"IP {client_ip} denied access to activity {self.id} - no matching networks"
+            )
             return False
-        except ValueError:
+        except ValueError as e:
             # Invalid client IP, deny access
+            logger.error(f"Invalid client IP '{client_ip}': {e}")
             return False
 
     class Meta:
@@ -120,9 +188,55 @@ class Attendance(models.Model):
         verbose_name=_("Usuário"),
     )
     checked_in_at = models.DateTimeField(_("Registrado em"), auto_now_add=True)
+    ip_address = models.GenericIPAddressField(
+        _("Endereço IP"),
+        blank=True,
+        null=True,
+        help_text=_("Endereço IP do usuário no momento do check-in"),
+    )
 
     def __str__(self):
         return f"{self.user} - {self.activity}"
+
+    def get_network_name(self):
+        """Get the network name if IP matches a configured network, otherwise return the IP"""
+        if not self.ip_address:
+            return "-"
+
+        from ipaddress import ip_address, ip_network
+
+        try:
+            client_addr = ip_address(self.ip_address)
+
+            # Check all active networks
+            for network_config in Network.objects.filter(is_active=True):
+                ip_list = [
+                    ip.strip()
+                    for ip in network_config.ip_addresses.split("\n")
+                    if ip.strip()
+                ]
+
+                for ip_entry in ip_list:
+                    try:
+                        # Try to match as network (CIDR notation)
+                        if "/" in ip_entry:
+                            network_obj = ip_network(ip_entry, strict=False)
+                            if client_addr in network_obj:
+                                return network_config.name
+                        # Match as individual IP
+                        else:
+                            ip_addr = ip_address(ip_entry)
+                            if client_addr == ip_addr:
+                                return network_config.name
+                    except ValueError:
+                        # Invalid IP configuration, skip
+                        continue
+
+            # No network matched, return the IP address
+            return self.ip_address
+        except ValueError:
+            # Invalid IP address
+            return self.ip_address
 
     class Meta:
         verbose_name = _("Presença")

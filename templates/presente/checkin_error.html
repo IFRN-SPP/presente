@@ -25,12 +25,7 @@
           {% endif %}
 
           <div class="mt-4">
-            {% if encoded_id %}
-            <a href="{% url 'presente:public_activity' encoded_id %}" class="btn btn-primary me-2">
-              <i class="bi bi-arrow-clockwise"></i> Tentar Novamente
-            </a>
-            {% endif %}
-            <a href="{% url 'presente:index' %}" class="btn btn-secondary">
+            <a href="{% url 'presente:index' %}" class="btn btn-primary">
               <i class="bi bi-house"></i> Ir para o início
             </a>
           </div>
