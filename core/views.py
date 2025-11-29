@@ -26,16 +26,11 @@ class CoreFilterView(
 ):
     template_name = "core/list.html"
     permission_action = "view"
-    # Disable FilterView's pagination - let django-tables2 handle it
     paginate_by = None
-    # Use table_pagination for django-tables2
     table_pagination = {"per_page": 10}
 
     def get_table_data(self):
-        """Return the filtered queryset for the table"""
-        # Get the filterset and return its queryset (not paginated)
-        filterset = self.get_filterset(self.get_filterset_class())
-        return filterset.qs
+        return self.object_list
 
 
 class CoreDetailView(

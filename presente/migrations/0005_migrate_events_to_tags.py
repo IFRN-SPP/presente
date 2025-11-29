@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 def migrate_events_to_tags(apps, schema_editor):
-    """Convert event names to activity tags"""
     Activity = apps.get_model('presente', 'Activity')
     Event = apps.get_model('presente', 'Event')
     Tag = apps.get_model('taggit', 'Tag')

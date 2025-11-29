@@ -36,7 +36,9 @@ class ActivityFilter(django_filters.FilterSet):
     )
     is_published = django_filters.BooleanFilter(
         label=_("Publicado"),
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        widget=forms.NullBooleanSelect(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
     )
 
     class Meta:
@@ -51,8 +53,6 @@ class ActivityFilter(django_filters.FilterSet):
 
 
 class AttendanceFilter(django_filters.FilterSet):
-    """Filter for user's own attendances (My Attendances page)"""
-
     activity__title = django_filters.CharFilter(
         lookup_expr="icontains",
         label=_("Atividade"),
@@ -171,8 +171,6 @@ class AttendanceFilter(django_filters.FilterSet):
 
 
 class ActivityAttendanceFilter(django_filters.FilterSet):
-    """Filter for attendances of a specific activity"""
-
     user__full_name = django_filters.CharFilter(
         lookup_expr="icontains",
         label=_("Nome"),

@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Acesso Negado | Presente!</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+      integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI="
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css"
+      crossorigin="anonymous"
+    />
+    <style>
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Source Sans 3', sans-serif;
+        }
+        .error-container {
+            text-align: center;
+            color: white;
+        }
+        .error-code {
+            font-size: 8rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .error-title {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+        .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .logo-container {
+            margin-bottom: 2rem;
+        }
+        .logo-container img {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        .btn-home {
+            background: white;
+            color: #f5576c;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            color: #f5576c;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="logo-container">
+            <img src="{% static 'img/presente-icon.svg' %}" alt="Presente! Logo">
+        </div>
+        <h1 class="error-code">403</h1>
+        <h2 class="error-title">Acesso Negado</h2>
+        <p class="error-message">
+            <i class="bi bi-shield-lock"></i> Você não tem permissão para acessar esta página.
+        </p>
+        <a href="/" class="btn-home">
+            <i class="bi bi-house-fill"></i> Voltar para o Início
+        </a>
+    </div>
+</body>
+</html>

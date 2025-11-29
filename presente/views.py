@@ -1,18 +1,14 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.views.generic import View
-from django.views.generic.edit import DeleteView
 from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
-from django_tables2 import SingleTableMixin
-from core.mixins import PageTitleMixin, AllowedActionsMixin
+from core.mixins import PageTitleMixin
 from core.views import (
     CoreCreateView,
     CoreDetailView,
@@ -24,7 +20,9 @@ from .models import Activity, Attendance
 from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
 from .forms import ActivityForm, AttendancePrintConfigForm
 from .filters import ActivityFilter, AttendanceFilter, ActivityAttendanceFilter
+from .mixins import ActivityOwnerMixin
 from .utils import (
+    get_client_ip,
     encode_activity_id,
     decode_activity_id,
     generate_checkin_token,
@@ -58,8 +56,6 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
 
 
 class MyActivitiesView(CoreFilterView):
-    """View showing only activities where the current user is an owner"""
-
     page_title = _("Minhas Atividades")
     model = Activity
     table_class = ActivityTable
@@ -71,8 +67,6 @@ class MyActivitiesView(CoreFilterView):
 
 
 class ActivityListView(CoreFilterView):
-    """View showing all activities (for superusers in admin section)"""
-
     page_title = _("Atividades")
     model = Activity
     table_class = ActivityTable
@@ -153,20 +147,7 @@ class ActivityDeleteView(CoreDeleteView):
 # Public views for attendance
 
 
-def get_client_ip(request):
-    """Get client IP address from request, considering proxy headers"""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        # X-Forwarded-For can contain multiple IPs, get the first one
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
-
-
 class PublicActivityView(TemplateView):
-    """Public page showing activity details and QR code for check-in"""
-
     template_name = "presente/public_activity.html"
 
     def get(self, request, encoded_id):
@@ -176,200 +157,133 @@ class PublicActivityView(TemplateView):
 
         activity = get_object_or_404(Activity, id=activity_id, is_published=True)
 
-        # Check if activity has expired
+        # Default context and template
+        template = self.template_name
+        context = {
+            "activity": activity,
+            "encoded_id": encoded_id,
+        }
+
+        # Check for errors and update context/template if needed
         if activity.is_expired():
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": _(
-                        "Esta atividade já encerrou. Não é mais possível registrar presença."
-                    ),
-                    "activity": activity,
-                },
+            template = "presente/checkin_error.html"
+            context["error"] = _(
+                "Esta atividade já encerrou. Não é mais possível registrar presença."
+            )
+        elif activity.is_not_started():
+            template = "presente/checkin_error.html"
+            context["error"] = _(
+                "Esta atividade ainda não iniciou. Aguarde o horário de início."
             )
 
-        # Check if activity hasn't started yet
-        if activity.is_not_started():
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": _(
-                        "Esta atividade ainda não iniciou. Aguarde o horário de início."
-                    ),
-                    "activity": activity,
-                },
-            )
-
-        return render(
-            request,
-            self.template_name,
-            {
-                "activity": activity,
-                "encoded_id": encoded_id,
-            },
-        )
+        return render(request, template, context)
 
 
 class ActivityQRCodeView(View):
-    """HTMX endpoint that generates a new time-based QR code token"""
-
     def get(self, request, encoded_id):
+        # Default template and context
+        template = "presente/includes/qr_error.html"
+        context = {}
+        status = 404
+
         activity_id = decode_activity_id(encoded_id)
-        if not activity_id:
-            return render(request, "presente/includes/qr_error.html", status=404)
+        if activity_id:
+            activity = get_object_or_404(Activity, id=activity_id, is_published=True)
+            status = 200
+            context["activity"] = activity
 
-        activity = get_object_or_404(Activity, id=activity_id, is_published=True)
+            # Check if activity has expired
+            if activity.is_expired():
+                template = "presente/includes/qr_expired.html"
+            else:
+                # Generate QR code
+                checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
+                checkin_path = reverse(
+                    "presente:checkin", kwargs={"token": checkin_token}
+                )
+                checkin_url = request.build_absolute_uri(checkin_path)
 
-        # Check if activity has expired
-        if activity.is_expired():
-            return render(
-                request, "presente/includes/qr_expired.html", {"activity": activity}
-            )
+                template = "presente/includes/qr_code.html"
+                context.update(
+                    {
+                        "checkin_url": checkin_url,
+                        "timeout": activity.qr_timeout,
+                        "encoded_id": encoded_id,
+                    }
+                )
 
-        checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
-        checkin_path = reverse("presente:checkin", kwargs={"token": checkin_token})
-        checkin_url = request.build_absolute_uri(checkin_path)
-
-        return render(
-            request,
-            "presente/includes/qr_code.html",
-            {
-                "checkin_url": checkin_url,
-                "activity": activity,
-                "timeout": activity.qr_timeout,
-                "encoded_id": encoded_id,
-            },
-        )
+        return render(request, template, context, status=status)
 
 
 class CheckInView(LoginRequiredMixin, View):
-    """View that registers user attendance when they scan the QR code"""
-
     def get(self, request, token):
+        # Default template and context
+        template = "presente/checkin_error.html"
+        context = {}
+
         activity_id = verify_checkin_token(token, 300)  # Max 5 min for safety
 
         if not activity_id:
-            messages.error(request, _("QR Code inválido ou expirado."))
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {"error": _("QR Code inválido ou expirado.")},
-            )
-
-        activity = get_object_or_404(Activity, id=activity_id)
-
-        # Check IP restriction
-        client_ip = get_client_ip(request)
-        if not activity.is_ip_allowed(client_ip):
-            error_msg = _(
-                "Acesso negado. Seu IP ({ip}) não tem permissão para registrar presença nesta atividade."
-            ).format(ip=client_ip)
-            messages.error(request, error_msg)
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": error_msg,
-                    "activity": activity,
-                    "encoded_id": encode_activity_id(activity.id),
-                    "client_ip": client_ip,
-                },
-            )
-
-        # Check if activity hasn't started yet
-        if activity.is_not_started():
-            messages.error(
-                request,
-                _(
-                    "Esta atividade ainda não começou. Não é possível registrar presença."
-                ),
-            )
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": _(
-                        "Esta atividade ainda não começou. Não é possível registrar presença."
-                    ),
-                    "activity": activity,
-                    "encoded_id": encode_activity_id(activity.id),
-                },
-            )
-
-        # Check if activity has expired
-        if activity.is_expired():
-            messages.error(
-                request,
-                _(
-                    "Esta atividade já encerrou. Não é mais possível registrar presença."
-                ),
-            )
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": _(
-                        "Esta atividade já encerrou. Não é mais possível registrar presença."
-                    ),
-                    "activity": activity,
-                    "encoded_id": encode_activity_id(activity.id),
-                },
-            )
-
-        # Verify token with activity's timeout
-        activity_id_verified = verify_checkin_token(token, activity.qr_timeout)
-        if not activity_id_verified:
-            messages.error(request, _("QR Code expirado. Solicite um novo código."))
-            return render(
-                request,
-                "presente/checkin_error.html",
-                {
-                    "error": _("QR Code expirado. Solicite um novo código."),
-                    "activity": activity,
-                    "encoded_id": encode_activity_id(activity.id),
-                },
-            )
-
-        # Check if user already checked in
-        attendance, created = Attendance.objects.get_or_create(
-            activity=activity,
-            user=request.user,
-            defaults={"ip_address": client_ip},
-        )
-
-        if created:
-            messages.success(request, _("Presença registrada com sucesso!"))
+            error_msg = _("QR Code inválido ou expirado.")
+            context["error"] = error_msg
         else:
-            messages.info(request, _("Você já registrou presença nesta atividade."))
+            activity = get_object_or_404(Activity, id=activity_id)
+            client_ip = get_client_ip(request)
 
-        return render(
-            request,
-            "presente/checkin_success.html",
-            {
+            # Base context for all cases
+            context = {
                 "activity": activity,
-                "attendance": attendance,
-                "created": created,
-            },
-        )
+                "encoded_id": encode_activity_id(activity.id),
+            }
+
+            # Check IP restriction
+            if not activity.is_ip_allowed(client_ip):
+                error_msg = _(
+                    "Acesso negado. Seu IP ({ip}) não tem permissão para registrar presença nesta atividade."
+                ).format(ip=client_ip)
+                context["error"] = error_msg
+                context["client_ip"] = client_ip
+            # Check if activity hasn't started yet
+            elif activity.is_not_started():
+                error_msg = _(
+                    "Esta atividade ainda não começou. Não é possível registrar presença."
+                )
+                context["error"] = error_msg
+            # Check if activity has expired
+            elif activity.is_expired():
+                error_msg = _(
+                    "Esta atividade já encerrou. Não é mais possível registrar presença."
+                )
+                context["error"] = error_msg
+            # Verify token with activity's timeout
+            elif not verify_checkin_token(token, activity.qr_timeout):
+                error_msg = _("QR Code expirado. Solicite um novo código.")
+                context["error"] = error_msg
+            # Success - register attendance
+            else:
+                attendance, created = Attendance.objects.get_or_create(
+                    activity=activity,
+                    user=request.user,
+                    defaults={"ip_address": client_ip},
+                )
+
+                template = "presente/checkin_success.html"
+                context = {
+                    "activity": activity,
+                    "attendance": attendance,
+                    "created": created,
+                }
+
+        return render(request, template, context)
 
 
-class MyAttendancesView(
-    LoginRequiredMixin,
-    PageTitleMixin,
-    SingleTableMixin,
-    FilterView,
-):
-    """View showing the current user's attendances"""
-
+class MyAttendancesView(CoreFilterView):
     page_title = _("Minhas Presenças")
     model = Attendance
     table_class = AttendanceTable
     filterset_class = AttendanceFilter
-    template_name = "core/list.html"
-    paginate_by = None  # Disable FilterView pagination
     table_pagination = {"per_page": 20}
+    actions = []
 
     def get_queryset(self):
         return (
@@ -379,78 +293,43 @@ class MyAttendancesView(
             .order_by("-checked_in_at")
         )
 
-    def get_table_data(self):
-        """Return the filtered queryset for the table"""
-        filterset = self.get_filterset(self.get_filterset_class())
-        return filterset.qs
 
-
-class ActivityAttendanceListView(
-    LoginRequiredMixin,
-    PageTitleMixin,
-    AllowedActionsMixin,
-    SingleTableMixin,
-    FilterView,
-):
-    """View showing all attendances for a specific activity"""
-
+class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
     model = Attendance
     table_class = ActivityAttendanceTable
     filterset_class = ActivityAttendanceFilter
     template_name = "presente/activity_attendance_list.html"
-    paginate_by = None  # Disable FilterView pagination
     table_pagination = {"per_page": 20}
     context_object_name = "attendances"
     actions = ["delete"]
 
     def get_page_title(self):
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        activity = self.get_activity()
         return _("Presenças - {}").format(activity.title)
 
     def get_queryset(self):
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
-
-        # Check if user is owner or superuser (only owners and superusers can view attendances)
-        if (
-            not self.request.user.is_superuser
-            and not activity.owners.filter(pk=self.request.user.pk).exists()
-        ):
-            raise Http404(
-                "Você não tem permissão para ver as presenças desta atividade"
-            )
-
+        activity = self.get_activity()
         return (
             Attendance.objects.filter(activity=activity)
             .select_related("user")
             .order_by("-checked_in_at")
         )
 
-    def get_table_data(self):
-        """Return the filtered queryset for the table"""
-        filterset = self.get_filterset(self.get_filterset_class())
-        return filterset.qs
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        activity = self.get_activity()
         context["activity"] = activity
         context["total_attendances"] = self.get_queryset().count()
         return context
 
     def get_allowed_actions(self):
-        """Override to provide custom delete URL that includes activity pk"""
         allowed_actions = {}
-        # Only add delete action for owners
         allowed_actions["delete"] = "presente:attendance_delete"
         return allowed_actions
 
 
-class AttendanceDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    """Delete an attendance - only accessible by activity owners"""
-
+class AttendanceDeleteView(CoreDeleteView):
     model = Attendance
-    template_name = "core/delete.html"
-    template_name_modal = "core/includes/delete_modal.html"
     success_message = _("Presença removida com sucesso!")
 
     def get_queryset(self):
@@ -473,33 +352,17 @@ class AttendanceDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
             "presente:activity_attendances", kwargs={"pk": self.kwargs["activity_pk"]}
         )
 
-    def get_template_names(self):
-        if not self.request.htmx:
-            return [self.template_name]
-        return [self.template_name_modal]
-
 
 class ActivityAttendancePrintConfigView(
+    ActivityOwnerMixin,
     LoginRequiredMixin,
     TemplateView,
 ):
-    """Configuration modal for attendance print report"""
-
     template_name = "presente/includes/attendance_print_config_modal.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
-
-        # Check if user is owner or superuser
-        if (
-            not self.request.user.is_superuser
-            and not activity.owners.filter(pk=self.request.user.pk).exists()
-        ):
-            raise Http404(
-                "Você não tem permissão para ver as presenças desta atividade"
-            )
-
+        activity = self.get_activity()
         context["activity"] = activity
         context["form"] = AttendancePrintConfigForm()
 
@@ -514,27 +377,17 @@ class ActivityAttendancePrintConfigView(
 
 
 class ActivityAttendancePrintView(
+    ActivityOwnerMixin,
     LoginRequiredMixin,
     FilterView,
 ):
-    """Print-friendly view for activity attendances"""
-
     model = Attendance
     filterset_class = ActivityAttendanceFilter
     template_name = "presente/attendance_print.html"
     context_object_name = "attendances"
 
     def get_queryset(self):
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
-
-        # Check if user is owner or superuser (only owners and superusers can view attendances)
-        if (
-            not self.request.user.is_superuser
-            and not activity.owners.filter(pk=self.request.user.pk).exists()
-        ):
-            raise Http404(
-                "Você não tem permissão para ver as presenças desta atividade"
-            )
+        activity = self.get_activity()
 
         # Get base queryset
         qs = Attendance.objects.filter(activity=activity).select_related("user")
@@ -562,7 +415,7 @@ class ActivityAttendancePrintView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        activity = get_object_or_404(Activity, pk=self.kwargs["pk"])
+        activity = self.get_activity()
         context["activity"] = activity
 
         # Get the filtered queryset (after filters are applied)

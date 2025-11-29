@@ -107,6 +107,24 @@
                 persist: false,
                 create: false,
                 maxItems: null,
+                preload: false,
+                loadThrottle: 300,
+                onInitialize: function() {
+                  // Hide dropdown initially
+                  this.clearOptions();
+                },
+                load: function(query, callback) {
+                  // Only load if at least 2 characters typed
+                  if (query.length < 2) {
+                    return callback();
+                  }
+                  // Reload all options and filter
+                  const allOptions = Array.from(el.querySelectorAll('option')).map(opt => ({
+                    value: opt.value,
+                    text: opt.text
+                  })).filter(opt => opt.value && opt.text.toLowerCase().includes(query.toLowerCase()));
+                  callback(allOptions);
+                },
                 render: {
                   option: function(data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
@@ -126,12 +144,37 @@
                 plugins: ['remove_button'],
                 persist: false,
                 create: true,
-                delimiter: ',',
-                createOnBlur: true,
                 maxItems: null,
+                preload: false,
+                loadThrottle: 300,
+                onInitialize: function() {
+                  // Store all options and clear initially
+                  this.allOptions = Array.from(el.querySelectorAll('option')).map(opt => ({
+                    value: opt.value,
+                    text: opt.text
+                  })).filter(opt => opt.value);
+                  this.clearOptions();
+                },
+                load: function(query, callback) {
+                  // Only load if at least 2 characters typed
+                  if (query.length < 2) {
+                    return callback();
+                  }
+                  // Filter stored options
+                  const filtered = this.allOptions.filter(opt =>
+                    opt.text.toLowerCase().includes(query.toLowerCase())
+                  );
+                  callback(filtered);
+                },
                 render: {
                   option_create: function(data, escape) {
                     return '<div class="create">Adicionar <strong>' + escape(data.input) + '</strong>&hellip;</div>';
+                  },
+                  no_results: function(data, escape) {
+                    if (data.input.length < 2) {
+                      return '<div class="no-results">Digite ao menos 2 caracteres...</div>';
+                    }
+                    return '<div class="no-results">Nenhum resultado encontrado.</div>';
                   }
                 }
               });

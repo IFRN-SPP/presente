@@ -5,17 +5,6 @@ from ipaddress import ip_address, ip_network
 
 
 class IPRestrictionMiddleware:
-    """
-    Middleware to restrict access based on client IP address.
-
-    Settings:
-    - IP_RESTRICTION_ENABLED: Enable/disable IP restrictions (default: False)
-    - ALLOWED_IP_NETWORKS: List of allowed IP addresses or CIDR networks
-      Example: ['127.0.0.1', '192.168.1.0/24', '10.0.0.0/8']
-    - IP_RESTRICTION_EXCLUDE_PATHS: List of URL paths to exclude from restrictions
-      Example: ['/health/', '/api/public/']
-    """
-
     def __init__(self, get_response):
         self.get_response = get_response
         self.enabled = getattr(settings, "IP_RESTRICTION_ENABLED", False)
@@ -45,10 +34,6 @@ class IPRestrictionMiddleware:
         return response
 
     def get_client_ip(self, request):
-        """
-        Extract client IP from request, considering proxy headers.
-        Checks X-Forwarded-For header first (for reverse proxies).
-        """
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
             # X-Forwarded-For can contain multiple IPs, get the first one
@@ -58,10 +43,6 @@ class IPRestrictionMiddleware:
         return ip
 
     def is_ip_allowed(self, client_ip):
-        """
-        Check if client IP is in allowed networks.
-        Supports both individual IPs and CIDR notation.
-        """
         if not self.allowed_networks:
             # If no networks configured, deny all (safe default)
             return False

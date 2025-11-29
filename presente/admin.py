@@ -43,13 +43,11 @@ class AttendanceAdmin(admin.ModelAdmin):
     readonly_fields = ["checked_in_at", "ip_address", "network_display"]
 
     def network_or_ip(self, obj):
-        """Display network name if recognized, otherwise IP address"""
         return obj.get_network_name()
 
     network_or_ip.short_description = "Rede/IP"
 
     def network_display(self, obj):
-        """Display network name with IP address in parentheses"""
         if not obj.ip_address:
             return "-"
         network_name = obj.get_network_name()

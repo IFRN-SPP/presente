@@ -5,7 +5,6 @@ register = template.Library()
 
 @register.simple_tag
 def has_active_filters(filterset):
-    """Check if there are active filters (excluding sort and page parameters)"""
     if not filterset.is_bound:
         return False
 

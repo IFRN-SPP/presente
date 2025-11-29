@@ -1,16 +1,24 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from taggit.models import Tag
 from .models import Activity
 
 User = get_user_model()
 
 
+class TagsMultipleChoiceField(forms.MultipleChoiceField):
+    def validate(self, value):
+        # Skip validation - allow any values (existing or new tags)
+        pass
+
+
 class ActivityForm(forms.ModelForm):
-    tags = forms.CharField(
+    tags = TagsMultipleChoiceField(
         required=False,
         label="Tags",
-        widget=forms.TextInput(
+        choices=[],
+        widget=forms.SelectMultiple(
             attrs={"class": "form-control", "data-tom-select": "tags"}
         ),
         help_text="Tags para organizar as atividades (ex: 'Workshop 2024', 'Python')",
@@ -70,11 +78,14 @@ class ActivityForm(forms.ModelForm):
             lambda obj: obj.get_full_name() or obj.email
         )
 
-        # Populate tags field with existing tags
+        # Populate tags field with all existing tags
+        all_tags = Tag.objects.all().order_by("name")
+        tag_choices = [(tag.name, tag.name) for tag in all_tags]
+        self.fields["tags"].choices = tag_choices
+
+        # Set initial tags if editing
         if self.instance and self.instance.pk:
-            self.fields["tags"].initial = ", ".join(
-                [tag.name for tag in self.instance.tags.all()]
-            )
+            self.fields["tags"].initial = [tag.name for tag in self.instance.tags.all()]
 
         # Set field order
         self.order_fields(
@@ -93,15 +104,21 @@ class ActivityForm(forms.ModelForm):
 
     def save(self, commit=True):
         # Save the tags data before calling super() since tags is not a model field
-        tags_str = self.cleaned_data.get("tags", "")
+        tags_data = self.cleaned_data.get("tags", "")
 
         # Call parent save
         instance = super().save(commit=commit)
 
         # Handle tags only after instance is saved (requires pk)
         if instance.pk:
-            if tags_str:
-                tag_list = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+            if tags_data:
+                # Tags can be a list (from select) or string (if using create with delimiter)
+                if isinstance(tags_data, str):
+                    tag_list = [
+                        tag.strip() for tag in tags_data.split(",") if tag.strip()
+                    ]
+                else:
+                    tag_list = tags_data
                 instance.tags.set(tag_list)
             else:
                 instance.tags.clear()
@@ -110,8 +127,6 @@ class ActivityForm(forms.ModelForm):
 
 
 class AttendancePrintConfigForm(forms.Form):
-    """Form for configuring attendance print report"""
-
     COLUMN_CHOICES = [
         ("number", _("Número")),
         ("name", _("Nome")),

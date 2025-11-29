@@ -8,8 +8,6 @@ User = get_user_model()
 
 
 class Network(models.Model):
-    """Network/IP configuration for activity access restriction"""
-
     name = models.CharField(
         _("Nome"),
         max_length=100,
@@ -88,15 +86,12 @@ class Activity(models.Model):
         return self.title
 
     def is_expired(self):
-        """Check if the activity has ended (past end_time)"""
         return timezone.now() > self.end_time
 
     def is_not_started(self):
-        """Check if the activity hasn't started yet (before start_time)"""
         return timezone.now() < self.start_time
 
     def is_ip_allowed(self, client_ip):
-        """Check if client IP is allowed to access this activity"""
         import logging
 
         logger = logging.getLogger(__name__)
@@ -199,7 +194,6 @@ class Attendance(models.Model):
         return f"{self.user} - {self.activity}"
 
     def get_network_name(self):
-        """Get the network name if IP matches a configured network, otherwise return the IP"""
         if not self.ip_address:
             return "-"
 
