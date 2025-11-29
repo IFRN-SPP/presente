@@ -50,10 +50,6 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def save_user(self, request, sociallogin, form=None):
-        """
-        Override to update user data on every login, not just on signup.
-        This ensures that all user data is refreshed from SUAP on each login.
-        """
         user = super().save_user(request, sociallogin, form)
 
         # Update user data from SUAP on every login

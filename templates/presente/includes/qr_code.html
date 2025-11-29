@@ -1,28 +1,48 @@
-<div id="qr-code-container"
-     hx-get="{% url 'presente:activity_qr' encoded_id %}"
-     hx-trigger="load delay:{{ timeout }}s"
-     hx-swap="outerHTML">
-  <div class="text-center">
-    <a href="{{ checkin_url }}" id="qrcode" class="mb-3 d-flex justify-content-center" style="cursor: pointer; text-decoration: none;"></a>
-    <p class="text-muted small mt-3">
-      <i class="bi bi-clock"></i> Renovando em <span id="countdown-text">{{ timeout }}</span> segundos
-    </p>
+<div class="qr-wrapper">
+  <a href="{{ checkin_url }}" id="qrcode" class="qr-code-link qr-fade-in"></a>
+  <div class="qr-countdown">
+    <i class="bi bi-arrow-clockwise"></i> Renovando em <span id="countdown-text">{{ timeout }}</span>s
   </div>
 </div>
+
+<div hx-get="{% url 'presente:activity_qr' encoded_id %}"
+     hx-trigger="load delay:{{ timeout }}s"
+     hx-swap="innerHTML transition:true"
+     hx-target="#qr-code-container"
+     style="display:none;"></div>
 
 <script>
 (function() {
   const timeout = {{ timeout }};
   let timeLeft = timeout;
 
+  // Calculate responsive QR code size
+  function getQRSize() {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // Base size on smaller dimension and apply limits
+    if (screenWidth < 576) {
+      return Math.min(300, screenWidth - 60);
+    } else if (screenWidth < 768) {
+      return Math.min(360, screenWidth - 100);
+    } else if (screenHeight < 800) {
+      return 340;
+    } else {
+      return 420;
+    }
+  }
+
   // Wait for QRCode library to be available
   function initQRCode() {
     const qrcodeDiv = document.getElementById("qrcode");
     if (qrcodeDiv && !qrcodeDiv.hasChildNodes() && typeof QRCode !== 'undefined') {
+      const qrSize = getQRSize();
+
       new QRCode(qrcodeDiv, {
         text: "{{ checkin_url }}",
-        width: 400,
-        height: 400,
+        width: qrSize,
+        height: qrSize,
         colorDark : "#000000",
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H
@@ -38,11 +58,17 @@
 
   function startCountdown() {
     const countdownText = document.getElementById('countdown-text');
+    const qrcodeDiv = document.getElementById('qrcode');
     if (!countdownText) return;
 
     const interval = setInterval(function() {
       timeLeft--;
       countdownText.textContent = timeLeft;
+
+      // Add fade-out effect in the last 3 seconds
+      if (timeLeft === 3 && qrcodeDiv) {
+        qrcodeDiv.classList.add('qr-fade-out');
+      }
 
       if (timeLeft <= 0) {
         clearInterval(interval);
@@ -51,5 +77,18 @@
   }
 
   initQRCode();
+
+  // Regenerate QR code on window resize
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      const qrcodeDiv = document.getElementById("qrcode");
+      if (qrcodeDiv) {
+        qrcodeDiv.innerHTML = '';
+        initQRCode();
+      }
+    }, 250);
+  });
 })();
 </script>

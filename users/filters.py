@@ -1,23 +1,14 @@
 import django_filters
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 from .models import User
 
 
 class UserFilter(django_filters.FilterSet):
-    email = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label=_("Email"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    first_name = django_filters.CharFilter(
-        lookup_expr="icontains",
+    name = django_filters.CharFilter(
+        method="filter_name",
         label=_("Nome"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    last_name = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label=_("Sobrenome"),
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     type = django_filters.ChoiceFilter(
@@ -27,35 +18,65 @@ class UserFilter(django_filters.FilterSet):
             attrs={"class": "form-select", "data-tom-select": "simple"}
         ),
     )
-    campus = django_filters.CharFilter(
-        lookup_expr="icontains",
+    campus = django_filters.ChoiceFilter(
         label=_("Campus"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        choices=lambda: [("", "---------")]
+        + [
+            (campus, campus)
+            for campus in User.objects.exclude(campus__isnull=True)
+            .exclude(campus="")
+            .values_list("campus", flat=True)
+            .distinct()
+            .order_by("campus")
+        ],
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
     )
-    curso = django_filters.CharFilter(
-        lookup_expr="icontains",
+    curso = django_filters.ChoiceFilter(
         label=_("Curso"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        choices=lambda: [("", "---------")]
+        + [
+            (curso, curso)
+            for curso in User.objects.exclude(curso__isnull=True)
+            .exclude(curso="")
+            .values_list("curso", flat=True)
+            .distinct()
+            .order_by("curso")
+        ],
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
     )
-    periodo_referencia = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label=_("Período de Referência"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+    periodo_referencia = django_filters.ChoiceFilter(
+        label=_("Período"),
+        choices=lambda: [("", "---------")]
+        + [
+            (periodo, periodo)
+            for periodo in User.objects.exclude(periodo_referencia__isnull=True)
+            .exclude(periodo_referencia="")
+            .values_list("periodo_referencia", flat=True)
+            .distinct()
+            .order_by("periodo_referencia")
+        ],
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
     )
-    is_active = django_filters.BooleanFilter(
-        label=_("Ativo"),
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
+
+    def filter_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(full_name__icontains=value)
+            | Q(first_name__icontains=value)
+            | Q(last_name__icontains=value)
+        )
 
     class Meta:
         model = User
         fields = [
-            "email",
-            "first_name",
-            "last_name",
+            "name",
             "type",
             "campus",
             "curso",
             "periodo_referencia",
-            "is_active",
         ]

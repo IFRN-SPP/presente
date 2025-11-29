@@ -7,11 +7,6 @@ from .models import User
 
 @receiver(post_save, sender=User)
 def assign_permissions_based_on_type(sender, instance, created, **kwargs):
-    """
-    Assign permissions to users based on their type.
-    SERVIDOR users get full activity management permissions.
-    ALUNO users get no special permissions (can only view their own attendances).
-    """
     from presente.models import Activity
 
     if instance.type == "SERVIDOR":

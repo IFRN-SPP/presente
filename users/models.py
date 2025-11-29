@@ -46,7 +46,7 @@ class User(AbstractUser):
         help_text=_("Curso do aluno (apenas para tipo ALUNO)"),
     )
     periodo_referencia = models.CharField(
-        _("Período de Referência"),
+        _("Período"),
         max_length=50,
         blank=True,
         null=True,
@@ -76,7 +76,6 @@ class User(AbstractUser):
 
     @property
     def matricula(self):
-        """Get matricula from SUAP social account uid"""
         if self.is_suap_user:
             social_account = self.socialaccount_set.filter(provider="suap").first()
             if social_account:
@@ -84,7 +83,6 @@ class User(AbstractUser):
         return None
 
     def get_full_name(self):
-        """Return full name, preferring full_name field, then first_name + last_name"""
         if self.full_name:
             return self.full_name
         if self.first_name or self.last_name:

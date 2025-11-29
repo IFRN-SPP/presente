@@ -16,13 +16,14 @@ class ActivityTable(CoreTable):
     tags_list = django_tables2.TemplateColumn(
         template_name="presente/includes/tags_column.html",
         verbose_name=_("Tags"),
-        orderable=False,
+        orderable=True,
+        order_by="tags__name",
         exclude_from_export=True,
     )
 
     class Meta:
         model = Activity
-        fields = ("title", "tags_list", "start_time", "end_time", "is_published")
+        fields = ("title", "tags_list", "start_time", "end_time")
 
 
 class AttendanceTable(django_tables2.Table):
@@ -105,15 +106,12 @@ class ActivityAttendanceTable(django_tables2.Table):
     )
 
     def render_user_name(self, record):
-        """Render user's full name"""
         return record.user.get_full_name()
 
     def render_user_curso(self, record):
-        """Render user's curso"""
         return record.user.curso or "-"
 
     def render_user_periodo_referencia(self, record):
-        """Render user's periodo_referencia"""
         return record.user.periodo_referencia or "-"
 
     class Meta:

@@ -8,8 +8,6 @@ User = get_user_model()
 
 
 class Network(models.Model):
-    """Network/IP configuration for activity access restriction"""
-
     name = models.CharField(
         _("Nome"),
         max_length=100,
@@ -60,11 +58,6 @@ class Activity(models.Model):
     )
     start_time = models.DateTimeField(_("Data/hora de início"))
     end_time = models.DateTimeField(_("Data/hora de término"))
-    is_published = models.BooleanField(
-        _("Publicado"),
-        default=False,
-        help_text=_("Define se a atividade está visível para registro de presença"),
-    )
     qr_timeout = models.IntegerField(
         _("Timeout do QR Code (segundos)"),
         default=30,
@@ -88,15 +81,12 @@ class Activity(models.Model):
         return self.title
 
     def is_expired(self):
-        """Check if the activity has ended (past end_time)"""
         return timezone.now() > self.end_time
 
     def is_not_started(self):
-        """Check if the activity hasn't started yet (before start_time)"""
         return timezone.now() < self.start_time
 
     def is_ip_allowed(self, client_ip):
-        """Check if client IP is allowed to access this activity"""
         import logging
 
         logger = logging.getLogger(__name__)
@@ -199,7 +189,6 @@ class Attendance(models.Model):
         return f"{self.user} - {self.activity}"
 
     def get_network_name(self):
-        """Get the network name if IP matches a configured network, otherwise return the IP"""
         if not self.ip_address:
             return "-"
 

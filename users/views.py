@@ -59,7 +59,14 @@ class UserDetailView(ExcludeAdminMixin, CoreDetailView):
     page_title = _("Usuários")
     model = User
     context_object_name = "user_obj"
-    fields = ["email", "first_name", "last_name", "type", "last_login"]
+    fields = [
+        "full_name",
+        "email",
+        "type",
+        "curso",
+        "periodo_referencia",
+        "date_joined",
+    ]
 
 
 class UserUpdateView(ExcludeAdminMixin, CoreUpdateView):
@@ -113,8 +120,6 @@ class UserProfileUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):
 
 
 class CustomEmailView(EmailView):
-    """Custom email view that prevents SUAP users from changing email"""
-
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_suap_user:
             messages.warning(
@@ -129,8 +134,6 @@ class CustomEmailView(EmailView):
 
 
 class CustomPasswordChangeView(PasswordChangeView):
-    """Custom password change view that prevents SUAP users from changing password"""
-
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_suap_user:
             messages.warning(

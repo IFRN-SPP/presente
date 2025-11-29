@@ -53,6 +53,33 @@ document.addEventListener('DOMContentLoaded', function() {
   // Run initialization immediately and after a delay
   setTimeout(initializeTomSelect, 100);
   setTimeout(initializeTomSelect, 500);
+
+  // Handle IP restriction toggle
+  const restrictIpCheckbox = document.getElementById('id_restrict_ip');
+  const allowedNetworksContainer = document.querySelector('[name="allowed_networks"]')?.closest('.mb-3');
+
+  if (restrictIpCheckbox && allowedNetworksContainer) {
+    function toggleAllowedNetworks() {
+      const isRestricted = restrictIpCheckbox.checked;
+      const checkboxes = allowedNetworksContainer.querySelectorAll('input[type="checkbox"]');
+
+      checkboxes.forEach(function(checkbox) {
+        checkbox.disabled = !isRestricted;
+      });
+
+      if (isRestricted) {
+        allowedNetworksContainer.style.opacity = '1';
+      } else {
+        allowedNetworksContainer.style.opacity = '0.5';
+      }
+    }
+
+    // Initial state
+    toggleAllowedNetworks();
+
+    // Listen for changes
+    restrictIpCheckbox.addEventListener('change', toggleAllowedNetworks);
+  }
 });
 </script>
 {% endblock %}

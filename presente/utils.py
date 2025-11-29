@@ -3,11 +3,17 @@ import hashlib
 import base64
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        # X-Forwarded-For can contain multiple IPs, get the first one
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return ip
+
+
 def encode_activity_id(activity_id):
-    """
-    Encode activity ID to a hash for public URLs.
-    Uses HMAC-based hashing to create a URL-safe hash.
-    """
     # Create a hash using the activity ID and secret key
     message = f"{activity_id}:activity-public"
     hash_obj = hashlib.blake2b(
@@ -26,10 +32,6 @@ def encode_activity_id(activity_id):
 
 
 def decode_activity_id(encoded_id):
-    """
-    Decode hashed activity ID back to integer.
-    Returns None if invalid.
-    """
     try:
         # Add padding back if needed
         padding = 4 - (len(encoded_id) % 4)
@@ -60,10 +62,6 @@ def decode_activity_id(encoded_id):
 
 
 def generate_checkin_token(activity_id, timeout_seconds):
-    """
-    Generate a time-based token for check-in that expires after timeout_seconds.
-    Uses HMAC-based hashing with embedded timestamp.
-    """
     import time
 
     # Get current timestamp
@@ -87,10 +85,6 @@ def generate_checkin_token(activity_id, timeout_seconds):
 
 
 def verify_checkin_token(token, timeout_seconds):
-    """
-    Verify and decode a check-in token.
-    Returns activity_id if valid and not expired, None otherwise.
-    """
     import time
 
     try:
