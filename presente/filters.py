@@ -34,12 +34,6 @@ class ActivityFilter(django_filters.FilterSet):
         label=_("Data inicial (até)"),
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
-    is_published = django_filters.BooleanFilter(
-        label=_("Publicado"),
-        widget=forms.NullBooleanSelect(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
-    )
 
     class Meta:
         model = Activity
@@ -48,7 +42,6 @@ class ActivityFilter(django_filters.FilterSet):
             "tags",
             "start_time__gte",
             "start_time__lte",
-            "is_published",
         ]
 
 
@@ -66,105 +59,24 @@ class AttendanceFilter(django_filters.FilterSet):
             attrs={"class": "form-select", "data-tom-select": "simple"}
         ),
     )
-    user__full_name = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label=_("Nome"),
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    user__type = django_filters.ChoiceFilter(
-        choices=User.UserType.choices,
-        label=_("Tipo"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
-    )
-    user__campus = django_filters.ChoiceFilter(
-        label=_("Campus"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
-    )
-    user__curso = django_filters.ChoiceFilter(
-        label=_("Curso"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
-    )
-    user__periodo_referencia = django_filters.ChoiceFilter(
-        label=_("Período de Referência"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
-    )
     activity__start_time__gte = django_filters.DateFilter(
         field_name="activity__start_time",
         lookup_expr="gte",
-        label=_("Atividade iniciada a partir de"),
+        label=_("Início a partir de"),
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
     activity__start_time__lte = django_filters.DateFilter(
         field_name="activity__start_time",
         lookup_expr="lte",
-        label=_("Atividade iniciada até"),
+        label=_("Início até"),
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Get distinct values from the queryset
-        if self.queryset is not None:
-            # Campus choices
-            campus_choices = [
-                (campus, campus)
-                for campus in self.queryset.exclude(user__campus__isnull=True)
-                .exclude(user__campus="")
-                .values_list("user__campus", flat=True)
-                .distinct()
-                .order_by("user__campus")
-            ]
-            self.filters["user__campus"].extra["choices"] = [
-                ("", "---------")
-            ] + campus_choices
-
-            # Curso choices
-            curso_choices = [
-                (curso, curso)
-                for curso in self.queryset.exclude(user__curso__isnull=True)
-                .exclude(user__curso="")
-                .values_list("user__curso", flat=True)
-                .distinct()
-                .order_by("user__curso")
-            ]
-            self.filters["user__curso"].extra["choices"] = [
-                ("", "---------")
-            ] + curso_choices
-
-            # Periodo_referencia choices
-            periodo_choices = [
-                (periodo, periodo)
-                for periodo in self.queryset.exclude(
-                    user__periodo_referencia__isnull=True
-                )
-                .exclude(user__periodo_referencia="")
-                .values_list("user__periodo_referencia", flat=True)
-                .distinct()
-                .order_by("user__periodo_referencia")
-            ]
-            self.filters["user__periodo_referencia"].extra["choices"] = [
-                ("", "---------")
-            ] + periodo_choices
 
     class Meta:
         model = Attendance
         fields = [
             "activity__title",
             "activity__tags",
-            "user__full_name",
-            "user__type",
-            "user__campus",
-            "user__curso",
-            "user__periodo_referencia",
             "activity__start_time__gte",
             "activity__start_time__lte",
         ]

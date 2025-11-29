@@ -155,7 +155,7 @@ class PublicActivityView(TemplateView):
         if not activity_id:
             raise Http404("Activity not found")
 
-        activity = get_object_or_404(Activity, id=activity_id, is_published=True)
+        activity = get_object_or_404(Activity, id=activity_id)
 
         # Default context and template
         template = self.template_name
@@ -188,7 +188,7 @@ class ActivityQRCodeView(View):
 
         activity_id = decode_activity_id(encoded_id)
         if activity_id:
-            activity = get_object_or_404(Activity, id=activity_id, is_published=True)
+            activity = get_object_or_404(Activity, id=activity_id)
             status = 200
             context["activity"] = activity
 

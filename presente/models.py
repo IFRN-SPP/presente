@@ -58,11 +58,6 @@ class Activity(models.Model):
     )
     start_time = models.DateTimeField(_("Data/hora de início"))
     end_time = models.DateTimeField(_("Data/hora de término"))
-    is_published = models.BooleanField(
-        _("Publicado"),
-        default=False,
-        help_text=_("Define se a atividade está visível para registro de presença"),
-    )
     qr_timeout = models.IntegerField(
         _("Timeout do QR Code (segundos)"),
         default=30,

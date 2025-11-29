@@ -5,7 +5,33 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Presente! | {% block title %}{% endblock %}</title>
+    <title>presente! | {% block title %}{% endblock %}</title>
+
+    <!--begin::Favicons-->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}" />
+    <!--end::Favicons-->
+
+    <!--begin::Meta Tags-->
+    <meta name="description" content="Registre sua presença em atividades do IFRN!" />
+    <meta name="keywords" content="presença, IFRN, SPP, registro, atividades, QR Code" />
+    <meta name="author" content="IFRN/SPP" />
+    <meta name="theme-color" content="#667eea" />
+
+    <!--begin::Open Graph-->
+    <meta property="og:title" content="presente!" />
+    <meta property="og:description" content="Registre sua presença em atividades do IFRN!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="{% static 'img/presente-icon.svg' %}" />
+
+    <!--begin::Twitter Card-->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="presente!" />
+    <meta name="twitter:description" content="Registre sua presença em atividades do IFRN!" />
+    <meta name="twitter:image" content="{% static 'img/presente-icon.svg' %}" />
+    <!--end::Meta Tags-->
     <!--begin::Fonts-->
     <link
       rel="stylesheet"

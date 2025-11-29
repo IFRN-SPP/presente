@@ -19,10 +19,9 @@ class ActivityAdmin(admin.ModelAdmin):
         "title",
         "start_time",
         "end_time",
-        "is_published",
         "qr_timeout",
     ]
-    list_filter = ["is_published", "tags"]
+    list_filter = ["tags"]
     search_fields = ["title"]
     date_hierarchy = "start_time"
     filter_horizontal = ["owners", "allowed_networks"]
