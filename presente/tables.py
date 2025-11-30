@@ -1,5 +1,6 @@
 import django_tables2
 from django.utils.translation import gettext_lazy as _
+from django.utils.safestring import mark_safe
 from .models import Activity, Attendance
 
 
@@ -13,6 +14,11 @@ class CoreTable(django_tables2.Table):
 
 
 class ActivityTable(CoreTable):
+    status = django_tables2.Column(
+        verbose_name=_("Status"),
+        orderable=False,
+        empty_values=(),
+    )
     tags_list = django_tables2.TemplateColumn(
         template_name="presente/includes/tags_column.html",
         verbose_name=_("Tags"),
@@ -21,9 +27,18 @@ class ActivityTable(CoreTable):
         exclude_from_export=True,
     )
 
+    def render_status(self, record):
+        status_map = {
+            "active": '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Ativa</span>',
+            "not_started": '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Não Iniciada</span>',
+            "expired": '<span class="badge bg-secondary"><i class="bi bi-clock-history"></i> Encerrada</span>',
+            "not_enabled": '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Desabilitada</span>',
+        }
+        return mark_safe(status_map.get(record.status, ""))
+
     class Meta:
         model = Activity
-        fields = ("title", "tags_list", "start_time", "end_time")
+        fields = ("title", "tags_list", "start_time", "end_time", "status")
 
 
 class AttendanceTable(django_tables2.Table):
@@ -71,12 +86,8 @@ class ActivityAttendanceTable(django_tables2.Table):
     user_name = django_tables2.Column(
         accessor="user",
         verbose_name=_("Nome"),
-        orderable=False,
-    )
-    user_email = django_tables2.Column(
-        accessor="user__email",
-        verbose_name=_("E-mail"),
         orderable=True,
+        order_by=("user__full_name",),
     )
     user_type = django_tables2.Column(
         accessor="user__type",
@@ -118,7 +129,6 @@ class ActivityAttendanceTable(django_tables2.Table):
         model = Attendance
         fields = (
             "user_name",
-            "user_email",
             "user_type",
             "user_curso",
             "user_periodo_referencia",

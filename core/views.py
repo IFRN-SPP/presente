@@ -48,11 +48,22 @@ class CoreDetailView(
         no_check = not isinstance(self.fields, (list, tuple))
         for field in self.object._meta.fields:
             if no_check or field.name in self.fields:
+                value = getattr(self.object, field.name)
+                safe = field.name in self.safe_fields
+
+                # Format boolean fields with badges
+                if field.get_internal_type() == "BooleanField":
+                    if value:
+                        value = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Sim</span>'
+                    else:
+                        value = '<span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Não</span>'
+                    safe = True
+
                 selected_fields.append(
                     {
                         "label": field.verbose_name,
-                        "value": getattr(self.object, field.name),
-                        "safe": True if field.name in self.safe_fields else False,
+                        "value": value,
+                        "safe": safe,
                     }
                 )
         return selected_fields

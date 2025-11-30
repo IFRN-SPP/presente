@@ -5,10 +5,6 @@
 
 {% block body_class %}public-activity-page{% endblock %}
 
-{% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-{% endblock %}
-
 {% block app_wrapper %}
 <div class="fullscreen-container">
   <div class="activity-card">
@@ -29,7 +25,11 @@
       </div>
 
       <div class="qr-section">
-        <div class="qr-title">Escaneie ou clique para registrar presença</div>
+        <div class="qr-datetime-badge">
+          <i class="bi bi-calendar3"></i> <span id="current-date"></span>
+          <span class="qr-datetime-separator">•</span>
+          <i class="bi bi-clock"></i> <span id="current-time"></span>
+        </div>
 
         <div id="qr-code-container"
              hx-get="{% url 'presente:activity_qr' encoded_id %}"
@@ -60,6 +60,10 @@
   </div>
 </div>
 
+{% block extra_script %}
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="{% static 'js/qrcode.js' %}"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const qrContainer = document.getElementById('qr-code-container');
@@ -84,4 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+{% endblock %}
+
 {% endblock %}

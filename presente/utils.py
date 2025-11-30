@@ -1,6 +1,7 @@
 from django.conf import settings
 import hashlib
 import base64
+import time
 
 
 def get_client_ip(request):
@@ -62,8 +63,6 @@ def decode_activity_id(encoded_id):
 
 
 def generate_checkin_token(activity_id, timeout_seconds):
-    import time
-
     # Get current timestamp
     timestamp = int(time.time())
 
@@ -85,8 +84,6 @@ def generate_checkin_token(activity_id, timeout_seconds):
 
 
 def verify_checkin_token(token, timeout_seconds):
-    import time
-
     try:
         # Add padding back if needed
         padding = 4 - (len(token) % 4)
