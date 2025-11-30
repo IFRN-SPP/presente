@@ -4,33 +4,18 @@
 <a href="{% url 'presente:activity_attendances' object.pk %}" class="btn btn-info me-2">
   <i class="bi bi-people"></i> Ver Presenças
 </a>
-{% if "change" in allowed_actions %}
-<a href="{% url allowed_actions.change object.id %}" class="btn btn-primary me-2">
-  <i class="bi bi-pencil"></i> Editar
-</a>
-{% endif %}
-{% if "delete" in allowed_actions %}
-<button
-  hx-get="{% url allowed_actions.delete object.id %}"
-  hx-target=".modal-content"
-  hx-trigger="click"
-  data-bs-toggle="modal"
-  data-bs-target="#modals-here"
-  class="btn btn-danger">
-  <i class="bi bi-trash"></i> Remover
-</button>
-{% endif %}
+{{ block.super }}
 {% endblock %}
 
 {% block app_content %}
 {{ block.super }}
 
-<div class="container-fluid mt-3">
+<div class="container-fluid">
   <div class="row">
     <div class="col-12">
-      <div class="card">
-        <div class="card-header {% if object.status == 'not_enabled' or object.status == 'expired' %}bg-secondary{% else %}bg-success{% endif %} text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="bi bi-qr-code"></i> Link Público</h5>
+      <div class="card {% if object.status == 'not_enabled' or object.status == 'expired' %}card-secondary{% else %}card-success{% endif %} card-outline mb-4">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-qr-code"></i> Link Público</div>
         </div>
         <div class="card-body">
           {% if object.status == 'expired' %}
@@ -58,27 +43,4 @@
     </div>
   </div>
 </div>
-
-{% if not is_expired %}
-<script>
-function copyPublicLink() {
-  const input = document.getElementById('publicLink');
-  input.select();
-  input.setSelectionRange(0, 99999); // For mobile devices
-  navigator.clipboard.writeText(input.value);
-
-  const button = event.target.closest('button');
-  const originalHTML = button.innerHTML;
-  button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
-  button.classList.remove('btn-outline-secondary');
-  button.classList.add('btn-success');
-
-  setTimeout(() => {
-    button.innerHTML = originalHTML;
-    button.classList.remove('btn-success');
-    button.classList.add('btn-outline-secondary');
-  }, 2000);
-}
-</script>
-{% endif %}
 {% endblock %}

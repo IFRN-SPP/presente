@@ -5,11 +5,21 @@
 
 {% block body_class %}public-activity-page{% endblock %}
 
+{% block extra_head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/qrcode_page.css' %}" />
+{% endblock %}
+
 {% block app_wrapper %}
 <div class="fullscreen-container">
   <div class="activity-card">
     <div class="activity-header">
       <h1><i class="bi bi-calendar-event"></i> {{ activity.title }}</h1>
+    </div>
+    <div class="qr-datetime-badge justify-content-center">
+      <i class="bi bi-calendar3"></i> <span id="current-date"></span>
+      <span class="qr-datetime-separator">•</span>
+      <i class="bi bi-clock"></i> <span id="current-time"></span>
     </div>
 
     <div class="activity-body">
@@ -25,12 +35,6 @@
       </div>
 
       <div class="qr-section">
-        <div class="qr-datetime-badge">
-          <i class="bi bi-calendar3"></i> <span id="current-date"></span>
-          <span class="qr-datetime-separator">•</span>
-          <i class="bi bi-clock"></i> <span id="current-time"></span>
-        </div>
-
         <div id="qr-code-container"
              hx-get="{% url 'presente:activity_qr' encoded_id %}"
              hx-trigger="load"
@@ -61,6 +65,7 @@
 </div>
 
 {% block extra_script %}
+{{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="{% static 'js/qrcode.js' %}"></script>
 
