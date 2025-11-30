@@ -1,10 +1,19 @@
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, AccessMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.edit import CreateView, DeleteView
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.forms import inlineformset_factory
+
+
+class SuperuserRequiredMixin(AccessMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
 
 class PageTitleMixin:
@@ -46,9 +55,10 @@ class AllowedActionsMixin:
 
 class AutoPermissionRequiredMixin(PermissionRequiredMixin):
     permission_action = "view"
+    permission_required = None
 
     def get_permission_required(self):
-        if not self.permission_required:
+        if self.permission_required is None:
             model = getattr(self, "model", None)
             if model is None and hasattr(self, "get_queryset"):
                 model = self.get_queryset().model

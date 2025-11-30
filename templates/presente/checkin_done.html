@@ -1,0 +1,67 @@
+{% extends 'presente/base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if success %}
+    {% if created %}Presença Registrada{% else %}Presença Já Registrada{% endif %}
+  {% else %}
+    Erro no Check-in
+  {% endif %}
+{% endblock %}
+
+{% block body_class %}{% endblock %}
+
+{% block app_wrapper %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-body text-center p-5">
+          {% if success %}
+            {% if created %}
+              <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+              </div>
+              <h2 class="text-success mb-3">Presença Registrada!</h2>
+              <p class="lead">Sua presença na atividade foi registrada com sucesso.</p>
+            {% else %}
+              <div class="mb-4">
+                <i class="bi bi-info-circle-fill text-info" style="font-size: 5rem;"></i>
+              </div>
+              <h2 class="text-info mb-3">Presença Já Registrada</h2>
+              <p class="lead">Você já havia registrado presença nesta atividade.</p>
+            {% endif %}
+
+            <hr>
+
+            <div class="text-start">
+              <p><strong><i class="bi bi-calendar-event"></i> Atividade:</strong> {{ activity.title }}</p>
+              <p><strong><i class="bi bi-person"></i> Participante:</strong> {{ attendance.user.get_full_name|default:attendance.user.email }}</p>
+              <p><strong><i class="bi bi-clock"></i> Registrado em:</strong> {{ attendance.checked_in_at|date:"d/m/Y H:i:s" }}</p>
+            </div>
+          {% else %}
+            <div class="mb-4">
+              <i class="bi bi-x-circle-fill text-danger" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="text-danger mb-3">Erro no Check-in</h2>
+            <p class="lead">{{ error }}</p>
+
+            {% if activity %}
+            <hr>
+            <div class="text-start">
+              <p><strong><i class="bi bi-calendar-event"></i> Atividade:</strong> {{ activity.title }}</p>
+            </div>
+            {% endif %}
+          {% endif %}
+
+          <div class="mt-4">
+            <a href="{% url 'presente:index' %}" class="btn btn-primary">
+              <i class="bi bi-house"></i> Ir para o início
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

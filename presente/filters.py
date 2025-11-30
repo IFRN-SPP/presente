@@ -9,10 +9,26 @@ User = get_user_model()
 
 
 class ActivityFilter(django_filters.FilterSet):
+    STATUS_CHOICES = [
+        ("", "---------"),
+        ("active", _("Ativa")),
+        ("not_started", _("Não Iniciada")),
+        ("expired", _("Encerrada")),
+        ("not_enabled", _("Desabilitada")),
+    ]
+
     title = django_filters.CharFilter(
         lookup_expr="icontains",
         label=_("Título"),
         widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    status = django_filters.ChoiceFilter(
+        choices=STATUS_CHOICES,
+        label=_("Status"),
+        method="filter_status",
+        widget=forms.Select(
+            attrs={"class": "form-select", "data-tom-select": "simple"}
+        ),
     )
     tags = django_filters.ModelChoiceFilter(
         queryset=Tag.objects.all(),
@@ -35,10 +51,28 @@ class ActivityFilter(django_filters.FilterSet):
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
 
+    def filter_status(self, queryset, name, value):
+        from django.utils import timezone
+
+        now = timezone.now()
+
+        if value == "active":
+            return queryset.filter(
+                start_time__lte=now, end_time__gte=now, is_enabled=True
+            )
+        elif value == "not_started":
+            return queryset.filter(start_time__gt=now)
+        elif value == "expired":
+            return queryset.filter(end_time__lt=now)
+        elif value == "not_enabled":
+            return queryset.filter(is_enabled=False)
+        return queryset
+
     class Meta:
         model = Activity
         fields = [
             "title",
+            "status",
             "tags",
             "start_time__gte",
             "start_time__lte",

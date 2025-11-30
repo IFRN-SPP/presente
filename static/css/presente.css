@@ -154,7 +154,9 @@
   margin-bottom: 0.75rem;
 }
 .qr-wrapper {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .qr-code-link {
   display: block;
@@ -200,6 +202,35 @@
   border-radius: 0.5rem;
   max-width: 100%;
   height: auto;
+}
+/* Datetime badge - compact utility display */
+.qr-datetime-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 1rem;
+}
+.qr-datetime-badge i {
+  color: #667eea;
+  font-size: 0.75rem;
+}
+.qr-datetime-separator {
+  color: #999;
+  margin: 0 0.15rem;
+}
+
+/* Status container */
+.qr-status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .qr-countdown {
   margin-top: 1rem;
@@ -278,6 +309,10 @@
   .qr-code-link {
     padding: 1rem;
   }
+  .qr-datetime-badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+  }
 }
 
 @media (max-width: 576px) {
@@ -304,6 +339,14 @@
   }
   .qr-code-link {
     padding: 0.75rem;
+  }
+  .qr-datetime-badge {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+    gap: 0.35rem;
+  }
+  .qr-countdown {
+    font-size: 0.85rem;
   }
   .footer-content {
     gap: 0.35rem;
@@ -355,6 +398,17 @@
   }
   .qr-code-link {
     padding: 0.75rem;
+  }
+  .qr-datetime-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.55rem;
+    gap: 0.3rem;
+  }
+  .qr-datetime-badge i {
+    font-size: 0.7rem;
+  }
+  .qr-countdown {
+    font-size: 0.85rem;
   }
   .page-footer {
     padding-top: 0.5rem;

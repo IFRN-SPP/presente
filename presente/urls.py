@@ -4,7 +4,11 @@ from . import views
 app_name = "presente"
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
-    path("my-activities/", views.MyActivitiesView.as_view(), name="my_activities"),
+    path(
+        "admin-activities/",
+        views.AdminActivitiesView.as_view(),
+        name="admin_activities",
+    ),
     path("activity/", views.ActivityListView.as_view(), name="activity_list"),
     path("activity/add", views.ActivityCreateView.as_view(), name="activity_add"),
     path(

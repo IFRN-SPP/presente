@@ -1,14 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
-from django.views.generic import View
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
-from core.mixins import PageTitleMixin
+from core.mixins import PageTitleMixin, SuperuserRequiredMixin
 from core.views import (
     CoreCreateView,
     CoreDetailView,
@@ -55,29 +54,22 @@ class IndexView(LoginRequiredMixin, PageTitleMixin, TemplateView):
         return context
 
 
-class MyActivitiesView(CoreFilterView):
+class ActivityListView(CoreFilterView):
     page_title = _("Minhas Atividades")
     model = Activity
     table_class = ActivityTable
     filterset_class = ActivityFilter
+    permission_required = []
 
     def get_queryset(self):
-        # Always filter by current user as owner, even for superusers
         return Activity.objects.filter(owners=self.request.user)
 
 
-class ActivityListView(CoreFilterView):
+class AdminActivitiesView(SuperuserRequiredMixin, CoreFilterView):
     page_title = _("Atividades")
     model = Activity
     table_class = ActivityTable
     filterset_class = ActivityFilter
-
-    def get_queryset(self):
-        # Only superusers should access this view (all activities)
-        if self.request.user.is_superuser:
-            return Activity.objects.all()
-        # Regular users shouldn't reach this view, but fallback to owned activities
-        return Activity.objects.filter(owners=self.request.user)
 
 
 class ActivityCreateView(CoreCreateView):
@@ -120,7 +112,6 @@ class ActivityDetailView(CoreDetailView):
         context = super().get_context_data(**kwargs)
         context["attendances"] = self.object.attendances.select_related("user").all()
         context["encoded_id"] = encode_activity_id(self.object.id)
-        context["is_expired"] = self.object.is_expired()
         return context
 
 
@@ -150,131 +141,104 @@ class ActivityDeleteView(CoreDeleteView):
 class PublicActivityView(TemplateView):
     template_name = "presente/public_activity.html"
 
-    def get(self, request, encoded_id):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        encoded_id = kwargs.get("encoded_id")
+
         activity_id = decode_activity_id(encoded_id)
         if not activity_id:
             raise Http404("Activity not found")
 
-        activity = get_object_or_404(Activity, id=activity_id)
+        activity = get_object_or_404(Activity, id=activity_id, is_enabled=True)
 
-        # Default context and template
-        template = self.template_name
-        context = {
-            "activity": activity,
-            "encoded_id": encoded_id,
-        }
+        context["activity"] = activity
+        context["encoded_id"] = encoded_id
 
-        # Check for errors and update context/template if needed
-        if activity.is_expired():
-            template = "presente/checkin_error.html"
-            context["error"] = _(
-                "Esta atividade já encerrou. Não é mais possível registrar presença."
-            )
-        elif activity.is_not_started():
-            template = "presente/checkin_error.html"
-            context["error"] = _(
-                "Esta atividade ainda não iniciou. Aguarde o horário de início."
-            )
-
-        return render(request, template, context)
+        return context
 
 
-class ActivityQRCodeView(View):
-    def get(self, request, encoded_id):
-        # Default template and context
-        template = "presente/includes/qr_error.html"
-        context = {}
-        status = 404
+class ActivityQRCodeView(TemplateView):
+    template_name = "presente/includes/qr_content.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        encoded_id = kwargs.get("encoded_id")
+
+        context["server_time"] = timezone.now().isoformat()
+        context["encoded_id"] = encoded_id
 
         activity_id = decode_activity_id(encoded_id)
         if activity_id:
             activity = get_object_or_404(Activity, id=activity_id)
-            status = 200
             context["activity"] = activity
 
-            # Check if activity has expired
-            if activity.is_expired():
-                template = "presente/includes/qr_expired.html"
-            else:
-                # Generate QR code
+            if activity.status == "active":
                 checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
                 checkin_path = reverse(
                     "presente:checkin", kwargs={"token": checkin_token}
                 )
-                checkin_url = request.build_absolute_uri(checkin_path)
+                checkin_url = self.request.build_absolute_uri(checkin_path)
 
-                template = "presente/includes/qr_code.html"
                 context.update(
                     {
                         "checkin_url": checkin_url,
                         "timeout": activity.qr_timeout,
-                        "encoded_id": encoded_id,
                     }
                 )
 
-        return render(request, template, context, status=status)
+        return context
 
 
-class CheckInView(LoginRequiredMixin, View):
-    def get(self, request, token):
-        # Default template and context
-        template = "presente/checkin_error.html"
-        context = {}
+class CheckInView(LoginRequiredMixin, TemplateView):
+    template_name = "presente/checkin_done.html"
 
-        activity_id = verify_checkin_token(token, 300)  # Max 5 min for safety
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        token = kwargs.get("token")
+        context["success"] = False
+
+        activity_id = verify_checkin_token(token, 300)
 
         if not activity_id:
-            error_msg = _("QR Code inválido ou expirado.")
-            context["error"] = error_msg
+            context["error"] = _("QR Code inválido ou expirado.")
         else:
             activity = get_object_or_404(Activity, id=activity_id)
-            client_ip = get_client_ip(request)
+            client_ip = get_client_ip(self.request)
 
-            # Base context for all cases
-            context = {
-                "activity": activity,
-                "encoded_id": encode_activity_id(activity.id),
-            }
+            context["activity"] = activity
+            context["encoded_id"] = encode_activity_id(activity.id)
 
-            # Check IP restriction
             if not activity.is_ip_allowed(client_ip):
-                error_msg = _(
+                context["error"] = _(
                     "Acesso negado. Seu IP ({ip}) não tem permissão para registrar presença nesta atividade."
                 ).format(ip=client_ip)
-                context["error"] = error_msg
                 context["client_ip"] = client_ip
-            # Check if activity hasn't started yet
             elif activity.is_not_started():
-                error_msg = _(
+                context["error"] = _(
                     "Esta atividade ainda não começou. Não é possível registrar presença."
                 )
-                context["error"] = error_msg
-            # Check if activity has expired
             elif activity.is_expired():
-                error_msg = _(
+                context["error"] = _(
                     "Esta atividade já encerrou. Não é mais possível registrar presença."
                 )
-                context["error"] = error_msg
-            # Verify token with activity's timeout
             elif not verify_checkin_token(token, activity.qr_timeout):
-                error_msg = _("QR Code expirado. Solicite um novo código.")
-                context["error"] = error_msg
-            # Success - register attendance
+                context["error"] = _("QR Code expirado. Solicite um novo código.")
             else:
                 attendance, created = Attendance.objects.get_or_create(
                     activity=activity,
-                    user=request.user,
+                    user=self.request.user,
                     defaults={"ip_address": client_ip},
                 )
 
-                template = "presente/checkin_success.html"
-                context = {
-                    "activity": activity,
-                    "attendance": attendance,
-                    "created": created,
-                }
+                context.update(
+                    {
+                        "success": True,
+                        "attendance": attendance,
+                        "created": created,
+                    }
+                )
 
-        return render(request, template, context)
+        return context
 
 
 class MyAttendancesView(CoreFilterView):
@@ -284,6 +248,7 @@ class MyAttendancesView(CoreFilterView):
     filterset_class = AttendanceFilter
     table_pagination = {"per_page": 20}
     actions = []
+    permission_required = []
 
     def get_queryset(self):
         return (
@@ -302,6 +267,7 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
     table_pagination = {"per_page": 20}
     context_object_name = "attendances"
     actions = ["delete"]
+    permission_required = []
 
     def get_page_title(self):
         activity = self.get_activity()

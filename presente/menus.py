@@ -24,7 +24,7 @@ Menu.add_item(
     "presente",
     MenuItem(
         "Minhas Atividades",
-        reverse("presente:my_activities"),
+        reverse("presente:activity_list"),
         icon="bi bi-list-check",
         check=lambda r: r.user.has_perm("presente.view_activity"),
     ),
@@ -36,7 +36,7 @@ Menu.add_item(
     "presente",
     MenuItem(
         "Atividades",
-        reverse("presente:activity_list"),
+        reverse("presente:admin_activities"),
         icon="bi bi-list-check",
         check=lambda r: r.user.is_superuser,
     ),
@@ -48,6 +48,6 @@ Menu.add_item(
         "Usuários",
         reverse("users:user_list"),
         icon="bi bi-person",
-        check=lambda r: r.user.has_perm("users.view_user"),
+        check=lambda r: r.user.is_superuser,
     ),
 )

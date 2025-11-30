@@ -32,6 +32,7 @@ class ActivityForm(forms.ModelForm):
             "end_time",
             "qr_timeout",
             "restrict_ip",
+            "is_enabled",
             "allowed_networks",
             "owners",
         ]
@@ -52,8 +53,9 @@ class ActivityForm(forms.ModelForm):
                 format="%Y-%m-%dT%H:%M",
             ),
             "qr_timeout": forms.NumberInput(
-                attrs={"class": "form-control", "min": "10"}
+                attrs={"class": "form-control", "min": "0"}
             ),
+            "is_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "restrict_ip": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "allowed_networks": forms.CheckboxSelectMultiple(
                 attrs={"class": "form-check-input"}
@@ -93,6 +95,7 @@ class ActivityForm(forms.ModelForm):
                 "start_time",
                 "end_time",
                 "qr_timeout",
+                "is_enabled",
                 "restrict_ip",
                 "allowed_networks",
                 "owners",
