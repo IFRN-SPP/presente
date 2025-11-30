@@ -38,7 +38,7 @@ class ActivityTable(CoreTable):
 
     class Meta:
         model = Activity
-        fields = ("title", "status", "tags_list", "start_time", "end_time")
+        fields = ("title", "tags_list", "start_time", "end_time", "status")
 
 
 class AttendanceTable(django_tables2.Table):

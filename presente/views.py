@@ -120,6 +120,9 @@ class ActivityUpdateView(CoreUpdateView):
     page_title = _("Atividades")
     form_class = ActivityForm
 
+    def get_success_url(self):
+        return reverse_lazy("presente:activity_view", kwargs={"pk": self.kwargs["pk"]})
+
     def get_queryset(self):
         if self.request.user.is_superuser:
             return Activity.objects.all()
@@ -213,14 +216,16 @@ class CheckInView(LoginRequiredMixin, TemplateView):
                     "Acesso negado. Seu IP ({ip}) não tem permissão para registrar presença nesta atividade."
                 ).format(ip=client_ip)
                 context["client_ip"] = client_ip
-            elif activity.is_not_started():
+            elif activity.status == "not_started":
                 context["error"] = _(
                     "Esta atividade ainda não começou. Não é possível registrar presença."
                 )
-            elif activity.is_expired():
+            elif activity.status == "expired":
                 context["error"] = _(
                     "Esta atividade já encerrou. Não é mais possível registrar presença."
                 )
+            elif activity.status == "not_enabled":
+                context["error"] = _("Esta atividade não está aceitando presenças.")
             elif not verify_checkin_token(token, activity.qr_timeout):
                 context["error"] = _("QR Code expirado. Solicite um novo código.")
             else:
@@ -297,6 +302,7 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
 class AttendanceDeleteView(CoreDeleteView):
     model = Attendance
     success_message = _("Presença removida com sucesso!")
+    permission_required = []
 
     def get_queryset(self):
         # Get the attendance and check if user is owner of the activity or superuser
