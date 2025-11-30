@@ -270,7 +270,7 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
     filterset_class = ActivityAttendanceFilter
     template_name = "presente/activity_attendance_list.html"
     table_pagination = {"per_page": 20}
-    context_object_name = "attendances"
+    # context_object_name = "attendances"
     actions = ["delete"]
     permission_required = []
 

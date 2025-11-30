@@ -5,85 +5,6 @@
 {{ form.media }}
 {% endblock %}
 
-{% block extra_body %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize Tom Select for this form
-  function initializeTomSelect() {
-    // Multi-select for users
-    document.querySelectorAll('[data-tom-select="users"]').forEach(function(el) {
-      if (!el.tomselect) {
-        new TomSelect(el, {
-          plugins: ['remove_button'],
-          persist: false,
-          create: false,
-          maxItems: null,
-          render: {
-            option: function(data, escape) {
-              return '<div>' + escape(data.text) + '</div>';
-            },
-            item: function(data, escape) {
-              return '<div>' + escape(data.text) + '</div>';
-            }
-          }
-        });
-      }
-    });
-
-    // Multi-select for tags with create
-    document.querySelectorAll('[data-tom-select="tags"]').forEach(function(el) {
-      if (!el.tomselect) {
-        new TomSelect(el, {
-          plugins: ['remove_button'],
-          persist: false,
-          create: true,
-          delimiter: ',',
-          createOnBlur: true,
-          maxItems: null,
-          render: {
-            option_create: function(data, escape) {
-              return '<div class="create">Adicionar <strong>' + escape(data.input) + '</strong>&hellip;</div>';
-            }
-          }
-        });
-      }
-    });
-  }
-
-  // Run initialization immediately and after a delay
-  setTimeout(initializeTomSelect, 100);
-  setTimeout(initializeTomSelect, 500);
-
-  // Handle IP restriction toggle
-  const restrictIpCheckbox = document.getElementById('id_restrict_ip');
-  const allowedNetworksContainer = document.querySelector('[name="allowed_networks"]')?.closest('.mb-3');
-
-  if (restrictIpCheckbox && allowedNetworksContainer) {
-    function toggleAllowedNetworks() {
-      const isRestricted = restrictIpCheckbox.checked;
-      const checkboxes = allowedNetworksContainer.querySelectorAll('input[type="checkbox"]');
-
-      checkboxes.forEach(function(checkbox) {
-        checkbox.disabled = !isRestricted;
-      });
-
-      if (isRestricted) {
-        allowedNetworksContainer.style.opacity = '1';
-      } else {
-        allowedNetworksContainer.style.opacity = '0.5';
-      }
-    }
-
-    // Initial state
-    toggleAllowedNetworks();
-
-    // Listen for changes
-    restrictIpCheckbox.addEventListener('change', toggleAllowedNetworks);
-  }
-});
-</script>
-{% endblock %}
-
 {% block crumb %}
 {{ block.super }}
 <li class="breadcrumb-item">
@@ -93,30 +14,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% block app_content %}
 <div class="container-fluid">
-  <div class="row">
+  <div class="row g-4">
     <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">
+      <div class="card card-primary card-outline mb-4">
+        <div class="card-header">
+          <div class="card-title">
             <i class="bi bi-plus-circle"></i> Novo Registro
-          </h5>
+          </div>
         </div>
-        <div class="card-body">
-          <form method="post" enctype="multipart/form-data" id="activity-form">
+        <form method="post" enctype="multipart/form-data" id="activity-form">
+          <div class="card-body">
             {% csrf_token %}
             {{form|crispy}}
-            <div class="mt-3">
-              <div class="d-flex justify-content-between">
-                <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
-                  <i class="bi bi-arrow-left"></i> Voltar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                  <i class="bi bi-save"></i> Salvar
-                </button>
-              </div>
+          </div>
+            <div class="card-footer">
+              <a href="{% url allowed_actions.list %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+              </a>
+              <button type="submit" class="btn btn-primary float-end">
+                <i class="bi bi-save"></i> Salvar
+              </button>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   </div>

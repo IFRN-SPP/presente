@@ -60,10 +60,12 @@
           </div>
         </div>
     </form>
+    {% comment %}
     <p class="my-3 text-center">
       <a href="{% url 'account_reset_password' %}" class="link-primary text-decoration-none small">
         <i class="bi bi-key me-1"></i>{% trans "Password Reset" %}
       </a>
     </p>
+    {% endcomment %}
   </div>
 {% endblock content %}
