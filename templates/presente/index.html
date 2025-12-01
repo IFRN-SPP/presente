@@ -51,16 +51,14 @@
   {% if recent_attendances %}
   <div class="row mt-4">
     <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-              <i class="bi bi-clock-history"></i> Presenças Recentes
-            </h5>
-            <a href="{% url 'presente:my_attendances' %}" class="btn btn-sm btn-light">
-              Ver todas
-            </a>
+      <div class="card card-primary">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="bi bi-clock-history"></i> Presenças Recentes
           </div>
+          <a href="{% url 'presente:my_attendances' %}" class="btn btn-sm btn-light float-end">
+            Ver todas
+          </a>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -105,19 +103,26 @@
   {% if not recent_attendances %}
   <div class="row mt-4">
     <div class="col-12">
-      <div class="card">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">
-            <i class="bi bi-info-circle"></i> Bem-vindo ao Sistema de Presença
-          </h5>
+      <div class="card card-info card-outline">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="bi bi-info-circle"></i> Você está no <strong>presente!</strong>
+          </div>
         </div>
         <div class="card-body">
           <h6>Como funciona:</h6>
           <ul class="mb-0">
-            <li><strong>Atividades:</strong> Cadastre atividades com data/hora e tempo de QR Code</li>
-            <li><strong>Tags:</strong> Organize suas atividades usando tags (ex: 'Workshop 2024', 'Python')</li>
-            <li><strong>QR Code:</strong> Compartilhe o link público para que participantes registrem presença</li>
-            <li><strong>Presenças:</strong> Acompanhe quem participou de cada atividade</li>
+            {% if perms.presente.activity_create %}
+              <li><strong>Atividades:</strong> Crie atividades definindo data, horário e tempo de renovação do QR Code.</li>
+              <li><strong>Tags:</strong> Organize suas atividades com tags para facilitar buscas e relatórios.</li>
+              <li><strong>QR Code:</strong> O <strong>presente!</strong> gera códigos dinâmicos que garantem segurança e evitam compartilhamentos indevidos.</li>
+              <li><strong>Presenças:</strong> Acompanhe quem registrou presença e consulte o histórico rapidamente.</li>
+            {% else %}
+              <li><strong>Atividades:</strong> Registre presença escaneando o QR Code exibido na sala ou no evento.</li>
+              <li><strong>QR Code:</strong> O código muda automaticamente para garantir que apenas quem está presente possa usá-lo.</li>
+              <li><strong>Tags:</strong> Use tags para filtrar e visualizar suas presenças com facilidade.</li>
+              <li><strong>Presenças:</strong> Consulte seu histórico de forma simples no <strong>presente!</strong>.</li>
+            {% endif %}
           </ul>
         </div>
       </div>
