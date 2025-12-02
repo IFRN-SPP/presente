@@ -30,8 +30,9 @@
     <a href="{{ checkin_url }}" class="qr-code-link d-inline-block bg-white rounded-4 shadow p-2">
       <img src="{{ qr_data_url }}" alt="QR Code" class="img-fluid rounded m-0">
     </a>
-    <div class="mt-3 text-muted qr-countdown">
-      <i class="bi bi-arrow-clockwise"></i> Renovando em <span id="countdown-text">{{ timeout }}</span>s
+    <div class="mt-3 text-muted">
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Renovando em <span id="countdown-text">{{ timeout }}</span>s
     </div>
   </div>
 
@@ -62,7 +63,7 @@
   {% if activity.status == 'not_started' %}
   window.qrManager.initActivityStartCountdown({{ seconds_until_start }});
   {% elif activity.status == 'active' %}
-  window.qrManager.initQRCountdown({{ timeout }});
+  window.qrManager.startQRCountdown({{ timeout }});
   {% endif %}
 })();
 </script>

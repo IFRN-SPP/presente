@@ -7,41 +7,16 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* QR Code animations */
+/* QR Code styling */
 .qr-code-link {
-  transition: transform 0.2s, opacity 0.3s ease-in-out;
+  transition: opacity 3s ease-in-out;
   text-decoration: none;
   cursor: pointer;
   max-width: 400px;
 }
 
-.qr-code-link:hover {
-  transform: translateY(-2px);
-}
-
 .qr-code-link.qr-fade-out {
   opacity: 0.3;
-}
-
-/* HTMX transitions */
-#qr-code-container.htmx-swapping {
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
-}
-
-#qr-code-container.htmx-settling {
-  opacity: 1;
-  transition: opacity 0.3s ease-in;
-}
-
-/* QR countdown spinner */
-.qr-countdown i {
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 /* Responsive QR size based on viewport height */

@@ -1,3 +1,16 @@
+// Helper function to format countdown time
+function formatCountdown(totalSeconds) {
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
 class QRCodeManager {
   constructor(serverTime) {
     const serverTimeMs = new Date(serverTime).getTime();
@@ -20,7 +33,6 @@ class QRCodeManager {
     const currentDateEl = document.getElementById('current-date');
     if (!currentTimeEl) return;
 
-    // Create formatters once for efficiency
     const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
@@ -51,37 +63,12 @@ class QRCodeManager {
     if (!countdownEl) return;
 
     const updateCountdown = () => {
-      if (secondsLeft <= 0) {
-        countdownEl.textContent = 'iniciando...';
-        return;
-      }
-
-      const days = Math.floor(secondsLeft / 86400);
-      const hours = Math.floor((secondsLeft % 86400) / 3600);
-      const minutes = Math.floor((secondsLeft % 3600) / 60);
-      const seconds = secondsLeft % 60;
-
-      let timeString = '';
-      if (days > 0) {
-        timeString = days + 'd ' + hours + 'h ' + minutes + 'm';
-      } else if (hours > 0) {
-        timeString = hours + 'h ' + minutes + 'm ' + seconds + 's';
-      } else if (minutes > 0) {
-        timeString = minutes + 'm ' + seconds + 's';
-      } else {
-        timeString = seconds + 's';
-      }
-
-      countdownEl.textContent = timeString;
+      countdownEl.textContent = secondsLeft <= 0 ? 'iniciando...' : formatCountdown(secondsLeft);
       secondsLeft--;
     };
 
     updateCountdown();
     this.intervals.push(setInterval(updateCountdown, 1000));
-  }
-
-  initQRCountdown(timeout) {
-    this.startQRCountdown(timeout);
   }
 
   startQRCountdown(timeLeft) {
@@ -95,7 +82,7 @@ class QRCodeManager {
       timeLeft--;
       countdownText.textContent = timeLeft;
 
-      if (timeLeft === 3 && qrLink) {
+      if (timeLeft === 5 && qrLink) {
         qrLink.classList.add('qr-fade-out');
       }
 
