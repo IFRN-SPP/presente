@@ -1,20 +1,18 @@
 {% load static %}
 
 {% if activity.status == 'not_started' %}
-  <div class="alert alert-info text-center"
+  <div class="alert alert-info text-center mb-0"
        hx-get="{% url 'presente:activity_qr' encoded_id %}"
        hx-trigger="load delay:5s"
        hx-swap="innerHTML transition:true"
        hx-target="#qr-code-container">
     <i class="bi bi-hourglass-split fs-1 d-block mb-3"></i>
     <h5>Aguarde o Início</h5>
-    <p class="mb-2">O QR Code será exibido automaticamente quando o registro de presença estiver disponível.</p>
+    <p class="mb-3">O QR Code será exibido automaticamente quando o registro de presença estiver disponível.</p>
 
-    <div class="mt-3 mb-3">
-      <div class="badge bg-info text-dark fs-6 px-3 py-2">
-        <i class="bi bi-clock-fill me-2"></i>
-        Inicia em: <span id="start-countdown" class="fw-bold">calculando...</span>
-      </div>
+    <div class="badge bg-info text-dark fs-6 px-3 py-2">
+      <i class="bi bi-clock-fill me-2"></i>
+      Inicia em: <span id="start-countdown" class="fw-bold">calculando...</span>
     </div>
   </div>
 
@@ -26,11 +24,13 @@
   </div>
 
 {% elif activity.status == 'active' %}
-  <div class="qr-title">Escaneie ou clique para registrar presença</div>
+  <div class="fs-5 fw-semibold text-dark mb-3">Escaneie ou clique para registrar presença</div>
 
-  <div class="qr-wrapper">
-    <a href="{{ checkin_url }}" id="qrcode" class="qr-code-link qr-fade-in"></a>
-    <div class="qr-countdown">
+  <div class="d-flex flex-column align-items-center m-0">
+    <a href="{{ checkin_url }}" class="qr-code-link d-inline-block bg-white rounded-4 shadow p-2">
+      <img src="{{ qr_data_url }}" alt="QR Code" class="img-fluid rounded m-0">
+    </a>
+    <div class="mt-3 text-muted qr-countdown">
       <i class="bi bi-arrow-clockwise"></i> Renovando em <span id="countdown-text">{{ timeout }}</span>s
     </div>
   </div>
@@ -51,14 +51,18 @@
 
 <script>
 (function() {
-  const qrManager = new QRCodeManager("{{ server_time }}");
+  if (window.qrManager) {
+    window.qrManager.clearIntervals();
+  }
 
-  qrManager.updateDateTime();
+  window.qrManager = new QRCodeManager("{{ server_time }}");
+
+  window.qrManager.updateDateTime();
 
   {% if activity.status == 'not_started' %}
-  qrManager.initActivityStartCountdown("{{ activity.start_time|date:'c' }}");
+  window.qrManager.initActivityStartCountdown({{ seconds_until_start }});
   {% elif activity.status == 'active' %}
-  qrManager.initQRCode("{{ checkin_url }}", {{ timeout }});
+  window.qrManager.initQRCountdown({{ timeout }});
   {% endif %}
 })();
 </script>

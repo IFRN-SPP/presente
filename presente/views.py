@@ -15,6 +15,10 @@ from core.views import (
     CoreDeleteView,
     CoreFilterView,
 )
+import qrcode
+import qrcode.image.svg
+from io import BytesIO
+import base64
 from .models import Activity, Attendance
 from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
 from .forms import ActivityForm, AttendancePrintConfigForm
@@ -166,14 +170,20 @@ class ActivityQRCodeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         encoded_id = kwargs.get("encoded_id")
+        now = timezone.now()
 
-        context["server_time"] = timezone.now().isoformat()
+        context["server_time"] = now.isoformat()
         context["encoded_id"] = encoded_id
 
         activity_id = decode_activity_id(encoded_id)
         if activity_id:
             activity = get_object_or_404(Activity, id=activity_id)
             context["activity"] = activity
+
+            # Pre-calculate countdown for not_started activities
+            if activity.status == "not_started":
+                seconds_until_start = int((activity.start_time - now).total_seconds())
+                context["seconds_until_start"] = max(0, seconds_until_start)
 
             if activity.status == "active":
                 checkin_token = generate_checkin_token(activity.id, activity.qr_timeout)
@@ -182,9 +192,25 @@ class ActivityQRCodeView(TemplateView):
                 )
                 checkin_url = self.request.build_absolute_uri(checkin_path)
 
+                # Generate QR code server-side
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_H,
+                    box_size=10,
+                    border=1,
+                )
+                qr.add_data(checkin_url)
+                qr.make(fit=True)
+
+                img = qr.make_image(fill_color="black", back_color="white")
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_data_url = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
+
                 context.update(
                     {
                         "checkin_url": checkin_url,
+                        "qr_data_url": qr_data_url,
                         "timeout": activity.qr_timeout,
                     }
                 )

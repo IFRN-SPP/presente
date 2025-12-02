@@ -11,30 +11,37 @@
 {% endblock %}
 
 {% block app_wrapper %}
-<div class="fullscreen-container">
-  <div class="activity-card">
-    <div class="activity-header">
-      <h1><i class="bi bi-calendar-event"></i> {{ activity.title }}</h1>
-    </div>
-    <div class="qr-datetime-badge justify-content-center">
-      <i class="bi bi-calendar3"></i> <span id="current-date"></span>
-      <span class="qr-datetime-separator">•</span>
-      <i class="bi bi-clock"></i> <span id="current-time"></span>
+<div class="min-vh-100 d-flex flex-column p-3 qr-gradient">
+  <div class="bg-white rounded-4 shadow flex-fill d-flex flex-column overflow-hidden mx-auto w-100" style="max-width: 1200px;">
+    <div class="qr-header-gradient text-white p-3 text-center">
+      <h1 class="h3 fw-bold mb-0"><i class="bi bi-calendar-event"></i> {{ activity.title }}</h1>
     </div>
 
-    <div class="activity-body">
-      <div class="time-info">
-        <div class="time-block">
-          <div class="time-label"><i class="bi bi-clock-fill"></i> Início</div>
-          <div class="time-value">{{ activity.start_time|date:"d/m/Y H:i" }}</div>
+    <div class="d-flex justify-content-center align-items-center gap-2 py-2 px-3 bg-light border-bottom" style="font-size: 0.85rem;">
+      <i class="bi bi-calendar3 text-primary"></i>
+      <span id="current-date"></span>
+      <span class="text-muted">•</span>
+      <i class="bi bi-clock text-primary"></i>
+      <span id="current-time"></span>
+    </div>
+
+    <div class="flex-fill d-flex flex-column p-3 justify-content-between gap-2">
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <div class="text-center p-2 bg-light rounded shadow-sm flex-fill" style="min-width: 140px; max-width: 220px;">
+          <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+            <i class="bi bi-clock-fill me-1"></i> Início
+          </div>
+          <div class="fw-bold fs-6">{{ activity.start_time|date:"d/m/Y H:i" }}</div>
         </div>
-        <div class="time-block">
-          <div class="time-label"><i class="bi bi-clock-fill"></i> Término</div>
-          <div class="time-value">{{ activity.end_time|date:"d/m/Y H:i" }}</div>
+        <div class="text-center p-2 bg-light rounded shadow-sm flex-fill" style="min-width: 140px; max-width: 220px;">
+          <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+            <i class="bi bi-clock-fill me-1"></i> Término
+          </div>
+          <div class="fw-bold fs-6">{{ activity.end_time|date:"d/m/Y H:i" }}</div>
         </div>
       </div>
 
-      <div class="qr-section">
+      <div class="text-center flex-fill d-flex flex-column justify-content-center align-items-center">
         <div id="qr-code-container"
              hx-get="{% url 'presente:activity_qr' encoded_id %}"
              hx-trigger="load"
@@ -43,7 +50,7 @@
             <span class="visually-hidden">Carregando...</span>
           </div>
         </div>
-        <div id="qr-error-container" style="display: none;">
+        <div id="qr-error-container" class="d-none">
           <div class="alert alert-danger text-center">
             <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
             <h5>Erro de Conexão</h5>
@@ -52,12 +59,12 @@
         </div>
       </div>
 
-      <div class="page-footer">
-        <div class="footer-content">
-          <img src="{% static 'img/presente-icon.svg' %}" alt="presente!" class="footer-logo">
-          <span class="footer-text">presente!</span>
-          <span class="footer-separator">|</span>
-          <span class="footer-copyright">&copy; IFRN/SPP - {% now 'Y' %}</span>
+      <div class="mt-auto pt-2 border-top text-center">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <img src="{% static 'img/presente-icon.svg' %}" alt="presente!" style="height: 24px;">
+          <span class="fw-bold">presente!</span>
+          <span class="text-muted">|</span>
+          <span class="text-muted small">&copy; IFRN/SPP - {% now 'Y' %}</span>
         </div>
       </div>
     </div>
@@ -66,7 +73,6 @@
 
 {% block extra_script %}
 {{ block.super }}
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="{% static 'js/qrcode.js' %}"></script>
 
 <script>
@@ -75,20 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const errorContainer = document.getElementById('qr-error-container');
 
   if (qrContainer) {
-    // Listen for HTMX errors
-    qrContainer.addEventListener('htmx:responseError', function(event) {
-      qrContainer.style.display = 'none';
-      errorContainer.style.display = 'block';
+    qrContainer.addEventListener('htmx:responseError', function() {
+      qrContainer.classList.add('d-none');
+      errorContainer.classList.remove('d-none');
     });
 
-    qrContainer.addEventListener('htmx:sendError', function(event) {
-      qrContainer.style.display = 'none';
-      errorContainer.style.display = 'block';
+    qrContainer.addEventListener('htmx:sendError', function() {
+      qrContainer.classList.add('d-none');
+      errorContainer.classList.remove('d-none');
     });
 
-    qrContainer.addEventListener('htmx:timeout', function(event) {
-      qrContainer.style.display = 'none';
-      errorContainer.style.display = 'block';
+    qrContainer.addEventListener('htmx:timeout', function() {
+      qrContainer.classList.add('d-none');
+      errorContainer.classList.remove('d-none');
     });
   }
 });
