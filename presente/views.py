@@ -66,7 +66,9 @@ class ActivityListView(CoreFilterView):
     permission_required = []
 
     def get_queryset(self):
-        return Activity.objects.filter(owners=self.request.user)
+        return Activity.objects.filter(owners=self.request.user).order_by(
+            "-modified_at", "-start_time"
+        )
 
 
 class AdminActivitiesView(SuperuserRequiredMixin, CoreFilterView):
@@ -74,6 +76,9 @@ class AdminActivitiesView(SuperuserRequiredMixin, CoreFilterView):
     model = Activity
     table_class = ActivityTable
     filterset_class = ActivityFilter
+
+    def get_queryset(self):
+        return Activity.objects.all().order_by("-modified_at", "-start_time")
 
 
 class ActivityCreateView(CoreCreateView):

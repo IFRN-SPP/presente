@@ -21,12 +21,14 @@ identify==2.6.15
 idna==3.10
 nodeenv==1.9.1
 oauthlib==3.3.1
+pillow==12.0.0
 platformdirs==4.4.0
 pre_commit==4.3.0
 pycparser==2.23
 PyJWT==2.10.1
 python-dotenv==1.1.1
 PyYAML==6.0.3
+qrcode==8.2
 requests==2.32.5
 ruff==0.13.3
 sqlparse==0.5.3
