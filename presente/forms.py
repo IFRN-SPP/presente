@@ -148,6 +148,8 @@ class AttendancePrintConfigForm(forms.Form):
         ("-type", _("Tipo (Z-A)")),
         ("curso", _("Curso (A-Z)")),
         ("-curso", _("Curso (Z-A)")),
+        ("periodo", _("Período (A-Z)")),
+        ("-periodo", _("Período (Z-A)")),
     ]
 
     columns = forms.MultipleChoiceField(

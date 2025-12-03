@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
+from django_weasyprint import WeasyTemplateResponseMixin
 from core.mixins import PageTitleMixin, SuperuserRequiredMixin
 from core.views import (
     CoreListView,
@@ -20,6 +21,10 @@ import qrcode
 import qrcode.image.svg
 from io import BytesIO
 import base64
+import os
+import csv
+from django.conf import settings
+from django.http import HttpResponse
 from .models import Activity, Attendance, Network
 from .tables import (
     ActivityTable,
@@ -363,18 +368,22 @@ class AttendanceDeleteView(CoreDeleteView):
         )
 
 
-class ActivityAttendancePrintConfigView(
+class ActivityAttendanceExportConfigView(
     ActivityOwnerMixin,
     LoginRequiredMixin,
     TemplateView,
 ):
-    template_name = "presente/includes/attendance_print_config_modal.html"
+    template_name = "presente/includes/attendance_export_config_modal.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         activity = self.get_activity()
         context["activity"] = activity
         context["form"] = AttendancePrintConfigForm()
+
+        # Get current sort setting from page
+        current_sort = self.request.GET.get("sort_by", "name")
+        context["current_sort"] = current_sort
 
         # Convert GET params to dict for easier template iteration
         filter_params = {}
@@ -386,15 +395,24 @@ class ActivityAttendancePrintConfigView(
         return context
 
 
-class ActivityAttendancePrintView(
+class ActivityAttendancePDFView(
+    WeasyTemplateResponseMixin,
     ActivityOwnerMixin,
     LoginRequiredMixin,
     FilterView,
 ):
     model = Attendance
     filterset_class = ActivityAttendanceFilter
-    template_name = "presente/attendance_print.html"
+    template_name = "presente/attendance_pdf.html"
     context_object_name = "attendances"
+    pdf_filename = "relatorio_presencas.pdf"
+
+    def get_pdf_filename(self):
+        activity = self.get_activity()
+        safe_title = "".join(
+            c if c.isalnum() or c in (" ", "-", "_") else "" for c in activity.title
+        ).replace(" ", "_")
+        return f"presencas_{safe_title}.pdf"
 
     def get_queryset(self):
         activity = self.get_activity()
@@ -413,6 +431,8 @@ class ActivityAttendancePrintView(
                 "-type": "-user__type",
                 "curso": "user__curso",
                 "-curso": "-user__curso",
+                "periodo": "user__periodo_referencia",
+                "-periodo": "-user__periodo_referencia",
                 "checked_in_at": "checked_in_at",
                 "-checked_in_at": "-checked_in_at",
             }
@@ -458,7 +478,116 @@ class ActivityAttendancePrintView(
         context["filter_info"] = filter_info
         context["generated_at"] = timezone.now()
 
+        # Add absolute path to logo for WeasyPrint
+        logo_path = os.path.join(
+            settings.BASE_DIR, "static", "img", "presente-icon.svg"
+        )
+        context["logo_path"] = logo_path
+
         return context
+
+
+class ActivityAttendanceCSVExportView(
+    ActivityOwnerMixin,
+    LoginRequiredMixin,
+    FilterView,
+):
+    model = Attendance
+    filterset_class = ActivityAttendanceFilter
+
+    def get_queryset(self):
+        activity = self.get_activity()
+        qs = Attendance.objects.filter(activity=activity).select_related("user")
+
+        # Apply sorting
+        sort_by = self.request.GET.get("sort_by", "name")
+        sort_mapping = {
+            "name": "user__full_name",
+            "-name": "-user__full_name",
+            "type": "user__type",
+            "-type": "-user__type",
+            "curso": "user__curso",
+            "-curso": "-user__curso",
+            "periodo": "user__periodo_referencia",
+            "-periodo": "-user__periodo_referencia",
+            "checked_in_at": "checked_in_at",
+            "-checked_in_at": "-checked_in_at",
+        }
+        sort_field = sort_mapping.get(sort_by, "user__full_name")
+        qs = qs.order_by(sort_field)
+
+        return qs
+
+    def get(self, request, *args, **kwargs):
+        activity = self.get_activity()
+        filterset = self.filterset_class(request.GET, queryset=self.get_queryset())
+        queryset = filterset.qs
+
+        # Get column configuration
+        columns = request.GET.getlist("columns")
+        if not columns:
+            columns = ["number", "name", "matricula", "checked_in_at"]
+
+        # Generate filename
+        safe_title = "".join(
+            c if c.isalnum() or c in (" ", "-", "_") else "" for c in activity.title
+        ).replace(" ", "_")
+        filename = f"presencas_{safe_title}.csv"
+
+        # Create CSV response
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+
+        # Write header row
+        header = []
+        if "number" in columns:
+            header.append("#")
+        if "name" in columns:
+            header.append("Nome")
+        if "email" in columns:
+            header.append("Email")
+        if "matricula" in columns:
+            header.append("Matrícula")
+        if "type" in columns:
+            header.append("Tipo")
+        if "curso" in columns:
+            header.append("Curso")
+        if "periodo" in columns:
+            header.append("Período")
+        if "checked_in_at" in columns:
+            header.append("Registrado em")
+        if "ip_address" in columns:
+            header.append("Rede")
+
+        writer.writerow(header)
+
+        # Write data rows
+        for idx, attendance in enumerate(queryset, 1):
+            row = []
+            if "number" in columns:
+                row.append(idx)
+            if "name" in columns:
+                row.append(attendance.user.get_full_name())
+            if "email" in columns:
+                row.append(attendance.user.email or "-")
+            if "matricula" in columns:
+                row.append(attendance.user.matricula or "-")
+            if "type" in columns:
+                row.append(attendance.user.get_type_display())
+            if "curso" in columns:
+                row.append(attendance.user.curso or "-")
+            if "periodo" in columns:
+                row.append(attendance.user.periodo_referencia or "-")
+            if "checked_in_at" in columns:
+                row.append(attendance.checked_in_at.strftime("%d/%m/%Y %H:%M:%S"))
+            if "ip_address" in columns:
+                row.append(attendance.get_network_name())
+
+            writer.writerow(row)
+
+        return response
 
 
 # Network CRUD Views
