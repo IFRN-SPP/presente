@@ -2,12 +2,12 @@
 
 <div class="modal-header bg-primary text-white">
   <h5 class="modal-title">
-    <i class="bi bi-gear"></i> Configurações do Relatório
+    <i class="bi bi-download"></i> Exportar Relatório
   </h5>
   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
-  <form method="get" action="{% url 'presente:activity_attendance_print' activity.pk %}" id="printConfigForm" target="_blank">
+  <form id="exportConfigForm">
 
     <!-- Preserve filter parameters -->
     {% for key, value in filter_params.items %}
@@ -50,7 +50,7 @@
       <p class="text-muted small mb-2">Escolha como ordenar as presenças no relatório</p>
       <select name="sort_by" id="modal_sort_by" class="form-select">
         {% for value, label in form.sort_by.field.choices %}
-        <option value="{{ value }}" {% if value == form.fields.sort_by.initial %}selected{% endif %}>
+        <option value="{{ value }}" {% if value == current_sort %}selected{% endif %}>
           {{ label }}
         </option>
         {% endfor %}
@@ -59,7 +59,7 @@
 
     <div class="alert alert-info mb-0">
       <i class="bi bi-info-circle"></i>
-      <strong>Dica:</strong> Após gerar o relatório, você pode usar a função de impressão do navegador (Ctrl+P) para salvar como PDF.
+      <strong>Opções de Exportação:</strong> Baixe o relatório em formato PDF ou CSV com as mesmas configurações.
     </div>
   </form>
 </div>
@@ -67,7 +67,32 @@
   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
     <i class="bi bi-x-circle"></i> Cancelar
   </button>
-  <button type="submit" form="printConfigForm" class="btn btn-primary">
-    <i class="bi bi-file-earmark-text"></i> Gerar Relatório
+  <button type="button" class="btn btn-outline-success" onclick="downloadCSV()">
+    <i class="bi bi-filetype-csv"></i> CSV
+  </button>
+  <button type="button" class="btn btn-primary" onclick="downloadPDF()">
+    <i class="bi bi-file-earmark-pdf"></i> PDF
   </button>
 </div>
+
+<script>
+function downloadPDF() {
+  const form = document.getElementById('exportConfigForm');
+  const pdfUrl = "{% url 'presente:activity_attendance_pdf' activity.pk %}";
+
+  const formData = new FormData(form);
+  const params = new URLSearchParams(formData);
+
+  window.open(pdfUrl + '?' + params.toString(), '_blank');
+}
+
+function downloadCSV() {
+  const form = document.getElementById('exportConfigForm');
+  const csvUrl = "{% url 'presente:activity_attendance_csv' activity.pk %}";
+
+  const formData = new FormData(form);
+  const params = new URLSearchParams(formData);
+
+  window.location.href = csvUrl + '?' + params.toString();
+}
+</script>

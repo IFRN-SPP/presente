@@ -1,24 +1,49 @@
-# Presente!
+# <img src="static/img/presente-icon.svg" alt="presente!" width="48" align="top"> presente!
 
-O **Presente!** é um sistema open source para gerenciamento de frequência em atividades extra-classe no IFRN.
-Professores e gestores podem cadastrar atividades ou eventos, e os participantes registram sua presença por meio de QR Codes ou códigos em texto.
+Sistema open source para gerenciamento de presença em atividades extra-classe do IFRN. Professores e gestores cadastram atividades, e os participantes registram presença através de QR Codes dinâmicos.
 
-O sistema utiliza o **SUAP** para autenticação e identificação automática das turmas, permitindo a geração de relatórios de frequência de forma integrada.
+Utiliza o **SUAP** para autenticação institucional e identificação dos participantes, com geração de relatórios integrada.
 
 ---
 
 ## Funcionalidades
 
-* Registro de atividades extra-classe autorizadas pelo professor.
-* Registro de presença pelos próprios participantes, por meio de QR-Code.
-* Validação automática ou manual da presença pelo administrador.
-* Mecanismos para prevenção de fraudes:
-    * QR-Code/código de verificação dinâmico com tempo de atualização configurável;
-    * Registro de IP e *timestamp* no momento do registro;
-    * Possibilidade de restringir o acesso à rede local do campus.
-* Autenticação via SUAP, com identificação automática dos participantes.
-* Geração de relatórios de frequência e participação com filtros por curso, turma, turno, etc.
-* Interface simples e objetiva.
+### Atividades
+* CRUD completo com suporte a múltiplos responsáveis
+* Controle automático de status (não iniciada, ativa, encerrada)
+* Página pública com QR Code para registro de presença
+* Sincronização de tempo com o servidor
+* Recarregamento automático da interface ao término
+
+### Presença
+* Registro via QR Code dinâmico ou link direto
+* QR Codes com renovação configurável (padrão: 30 segundos)
+* Tokens com validação de expiração
+* Histórico completo por atividade e por usuário
+* Contadores em tempo real
+
+### Segurança
+* Restrição por endereço IP ou faixa de rede (CIDR)
+* Gerenciamento de redes permitidas (superusuários)
+* Registro de IP e timestamp em cada marcação
+* Sincronização de relógio cliente-servidor para prevenir manipulação
+
+### Relatórios
+* Filtros por nome, tipo de usuário, curso e período
+* Seleção de colunas para impressão
+* Ordenação customizável
+* Formato otimizado para impressão física
+
+### Interface
+* Design responsivo (Bootstrap/AdminLTE)
+* Atualizações via HTMX (sem reload completo)
+* Contadores regressivos em tempo real
+* Feedback visual de erros e sucessos
+
+### Administração
+* Painel para superusuários
+* Gerenciamento de usuários e redes
+* Visualização de todas as atividades do sistema
 
 ---
 

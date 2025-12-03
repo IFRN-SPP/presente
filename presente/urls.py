@@ -30,14 +30,19 @@ urlpatterns = [
         name="activity_attendances",
     ),
     path(
-        "activity/<int:pk>/attendances/print/config/",
-        views.ActivityAttendancePrintConfigView.as_view(),
-        name="activity_attendance_print_config",
+        "activity/<int:pk>/attendances/export/config/",
+        views.ActivityAttendanceExportConfigView.as_view(),
+        name="activity_attendance_export_config",
     ),
     path(
-        "activity/<int:pk>/attendances/print/",
-        views.ActivityAttendancePrintView.as_view(),
-        name="activity_attendance_print",
+        "activity/<int:pk>/attendances/pdf/",
+        views.ActivityAttendancePDFView.as_view(),
+        name="activity_attendance_pdf",
+    ),
+    path(
+        "activity/<int:pk>/attendances/csv/",
+        views.ActivityAttendanceCSVExportView.as_view(),
+        name="activity_attendance_csv",
     ),
     path(
         "activity/<int:activity_pk>/attendance/<int:pk>/delete/",
