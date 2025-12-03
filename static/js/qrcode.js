@@ -14,10 +14,12 @@ function formatCountdown(totalSeconds) {
 }
 
 class QRCodeManager {
-  constructor(serverTime) {
+  constructor(serverTime, endTime = null) {
     const serverTimeMs = new Date(serverTime).getTime();
     const clientTimeMs = new Date().getTime();
     this.timeOffset = serverTimeMs - clientTimeMs;
+    this.endTime = endTime ? new Date(endTime).getTime() : null;
+    this.hasReloaded = false;
     this.intervals = [];
   }
 
@@ -53,6 +55,16 @@ class QRCodeManager {
       currentTimeEl.textContent = timeFormatter.format(now);
       if (currentDateEl) {
         currentDateEl.textContent = dateFormatter.format(now);
+      }
+
+      // Check if activity has ended and trigger HTMX refresh
+      if (this.endTime && !this.hasReloaded && now.getTime() >= this.endTime) {
+        this.hasReloaded = true;
+        const qrContainer = document.getElementById('qr-code-container');
+        if (qrContainer && typeof htmx !== 'undefined') {
+          const url = qrContainer.getAttribute('hx-get');
+          htmx.ajax('GET', url, {target: '#qr-code-container', swap: 'innerHTML'});
+        }
       }
     };
 

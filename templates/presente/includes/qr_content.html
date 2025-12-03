@@ -56,14 +56,22 @@
     window.qrManager.clearIntervals();
   }
 
-  window.qrManager = new QRCodeManager("{{ server_time }}");
+  // Defer DOM access to avoid FOUC warning
+  requestAnimationFrame(() => {
+    // Create manager without end time check for expired activities
+    {% if activity.status == 'expired' %}
+    window.qrManager = new QRCodeManager("{{ server_time }}");
+    {% else %}
+    window.qrManager = new QRCodeManager("{{ server_time }}", "{{ activity.end_time|date:'c' }}");
+    {% endif %}
 
-  window.qrManager.updateDateTime();
+    window.qrManager.updateDateTime();
 
-  {% if activity.status == 'not_started' %}
-  window.qrManager.initActivityStartCountdown({{ seconds_until_start }});
-  {% elif activity.status == 'active' %}
-  window.qrManager.startQRCountdown({{ timeout }});
-  {% endif %}
+    {% if activity.status == 'not_started' %}
+    window.qrManager.initActivityStartCountdown({{ seconds_until_start }});
+    {% elif activity.status == 'active' %}
+    window.qrManager.startQRCountdown({{ timeout }});
+    {% endif %}
+  });
 })();
 </script>

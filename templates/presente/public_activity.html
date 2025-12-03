@@ -81,19 +81,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const errorContainer = document.getElementById('qr-error-container');
 
   if (qrContainer) {
-    qrContainer.addEventListener('htmx:responseError', function() {
+    const showError = () => {
       qrContainer.classList.add('d-none');
       errorContainer.classList.remove('d-none');
-    });
+    };
 
-    qrContainer.addEventListener('htmx:sendError', function() {
-      qrContainer.classList.add('d-none');
-      errorContainer.classList.remove('d-none');
-    });
-
-    qrContainer.addEventListener('htmx:timeout', function() {
-      qrContainer.classList.add('d-none');
-      errorContainer.classList.remove('d-none');
+    ['htmx:responseError', 'htmx:sendError', 'htmx:timeout'].forEach(event => {
+      qrContainer.addEventListener(event, showError);
     });
   }
 });
