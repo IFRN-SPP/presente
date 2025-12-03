@@ -44,6 +44,20 @@ urlpatterns = [
         views.AttendanceDeleteView.as_view(),
         name="attendance_delete",
     ),
+    # Network CRUD URLs
+    path("network/", views.NetworkListView.as_view(), name="network_list"),
+    path("network/add", views.NetworkCreateView.as_view(), name="network_add"),
+    path("network/<int:pk>/", views.NetworkDetailView.as_view(), name="network_view"),
+    path(
+        "network/<int:pk>/update/",
+        views.NetworkUpdateView.as_view(),
+        name="network_change",
+    ),
+    path(
+        "network/<int:pk>/delete/",
+        views.NetworkDeleteView.as_view(),
+        name="network_delete",
+    ),
     # User attendances
     path("my-attendances/", views.MyAttendancesView.as_view(), name="my_attendances"),
     # Public attendance URLs

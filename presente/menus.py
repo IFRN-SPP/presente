@@ -51,3 +51,13 @@ Menu.add_item(
         check=lambda r: r.user.is_superuser,
     ),
 )
+
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Redes",
+        reverse("presente:network_list"),
+        icon="bi bi-hdd-network",
+        check=lambda r: r.user.is_superuser,
+    ),
+)

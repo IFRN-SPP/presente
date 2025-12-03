@@ -1,3 +1,5 @@
+"use strict";
+
 // Helper function to format countdown time
 function formatCountdown(totalSeconds) {
   const days = Math.floor(totalSeconds / 86400);

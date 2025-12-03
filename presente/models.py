@@ -55,8 +55,8 @@ class Activity(models.Model):
         ),
         blank=True,
     )
-    start_time = models.DateTimeField(_("Data/hora de início"))
-    end_time = models.DateTimeField(_("Data/hora de término"))
+    start_time = models.DateTimeField(_("Início"))
+    end_time = models.DateTimeField(_("Término"))
     is_enabled = models.BooleanField(
         default=True,
         verbose_name=_("Habilitar?"),
@@ -79,6 +79,12 @@ class Activity(models.Model):
         verbose_name=_("Redes permitidas"),
         blank=True,
         help_text=_("Selecione as redes que podem acessar esta atividade"),
+    )
+    created_at = models.DateTimeField(
+        _("Criação"), auto_now_add=True, null=True, blank=True
+    )
+    modified_at = models.DateTimeField(
+        _("Modificação"), auto_now=True, null=True, blank=True
     )
 
     def __str__(self):
