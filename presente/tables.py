@@ -1,7 +1,7 @@
 import django_tables2
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
-from .models import Activity, Attendance
+from .models import Activity, Attendance, Network
 
 
 class CoreTable(django_tables2.Table):
@@ -135,3 +135,10 @@ class ActivityAttendanceTable(django_tables2.Table):
             "checked_in_at",
         )
         order_by = "-checked_in_at"
+
+
+class NetworkTable(CoreTable):
+    class Meta:
+        model = Network
+        fields = ("name", "description", "is_active")
+        attrs = {"class": "table table-striped"}

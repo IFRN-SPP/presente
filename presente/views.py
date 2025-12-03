@@ -9,6 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django_filters.views import FilterView
 from core.mixins import PageTitleMixin, SuperuserRequiredMixin
 from core.views import (
+    CoreListView,
     CoreCreateView,
     CoreDetailView,
     CoreUpdateView,
@@ -19,9 +20,14 @@ import qrcode
 import qrcode.image.svg
 from io import BytesIO
 import base64
-from .models import Activity, Attendance
-from .tables import ActivityTable, AttendanceTable, ActivityAttendanceTable
-from .forms import ActivityForm, AttendancePrintConfigForm
+from .models import Activity, Attendance, Network
+from .tables import (
+    ActivityTable,
+    AttendanceTable,
+    ActivityAttendanceTable,
+    NetworkTable,
+)
+from .forms import ActivityForm, AttendancePrintConfigForm, NetworkForm
 from .filters import ActivityFilter, AttendanceFilter, ActivityAttendanceFilter
 from .mixins import ActivityOwnerMixin
 from .utils import (
@@ -453,3 +459,34 @@ class ActivityAttendancePrintView(
         context["generated_at"] = timezone.now()
 
         return context
+
+
+# Network CRUD Views
+
+
+class NetworkListView(SuperuserRequiredMixin, CoreListView):
+    page_title = _("Redes")
+    model = Network
+    table_class = NetworkTable
+
+
+class NetworkCreateView(SuperuserRequiredMixin, CoreCreateView):
+    model = Network
+    page_title = _("Redes")
+    form_class = NetworkForm
+
+
+class NetworkDetailView(SuperuserRequiredMixin, CoreDetailView):
+    model = Network
+    page_title = _("Redes")
+
+
+class NetworkUpdateView(SuperuserRequiredMixin, CoreUpdateView):
+    model = Network
+    page_title = _("Redes")
+    form_class = NetworkForm
+
+
+class NetworkDeleteView(SuperuserRequiredMixin, CoreDeleteView):
+    model = Network
+    page_title = _("Redes")

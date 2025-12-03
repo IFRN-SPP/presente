@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from taggit.models import Tag
-from .models import Activity
+from .models import Activity, Network
 
 User = get_user_model()
 
@@ -172,3 +172,21 @@ class AttendancePrintConfigForm(forms.Form):
             # Default columns if none selected
             return ["number", "name", "matricula", "checked_in_at"]
         return columns
+
+
+class NetworkForm(forms.ModelForm):
+    class Meta:
+        model = Network
+        fields = ["name", "description", "ip_addresses", "is_active"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "ip_addresses": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace",
+                    "rows": 10,
+                    "placeholder": "200.137.2.62\n192.168.1.0/24\n10.0.0.1",
+                }
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
