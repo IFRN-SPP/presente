@@ -120,6 +120,7 @@ class ActivityDetailView(CoreDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["attendances"] = self.object.attendances.select_related("user").all()
+        context["attendance_count"] = self.object.attendances.count()
         context["encoded_id"] = encode_activity_id(self.object.id)
         return context
 
