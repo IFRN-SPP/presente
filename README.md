@@ -1,6 +1,4 @@
-<img src="static/img/presente-icon.svg" alt="Presente!" width="80">
-
-# Presente!
+# <img src="static/img/presente-icon.svg" alt="presente!" width="48" align="top"> presente!
 
 Sistema open source para gerenciamento de presença em atividades extra-classe do IFRN. Professores e gestores cadastram atividades, e os participantes registram presença através de QR Codes dinâmicos.
 
