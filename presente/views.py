@@ -329,7 +329,7 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
         qs = Attendance.objects.filter(activity=activity).select_related("user")
 
         if connection.vendor == "postgresql":
-            from django.contrib.postgres.fields import Collate
+            from django.db.models.functions import Collate
 
             qs = qs.annotate(user_name_collated=Collate("user__full_name", "pt_BR"))
         else:

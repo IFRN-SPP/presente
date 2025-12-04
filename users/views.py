@@ -52,7 +52,7 @@ class UserListView(ExcludeAdminMixin, CoreFilterView):
         queryset = queryset.prefetch_related("socialaccount_set")
 
         if connection.vendor == "postgresql":
-            from django.contrib.postgres.fields import Collate
+            from django.db.models.functions import Collate
 
             queryset = queryset.annotate(
                 full_name_collated=Collate("full_name", "pt_BR")
