@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from taggit.managers import TaggableManager
+from django.db.models import Case, When, Value, IntegerField
 
 User = get_user_model()
 
@@ -39,6 +40,25 @@ class Network(models.Model):
         verbose_name = _("Rede")
         verbose_name_plural = _("Redes")
         ordering = ["name"]
+
+
+class ActivityQuerySet(models.QuerySet):
+    def with_status_order(self):
+        now = timezone.now()
+        return self.annotate(
+            status_order=Case(
+                When(end_time__lt=now, then=Value(3)),  # expired
+                When(start_time__gt=now, then=Value(1)),  # not_started
+                When(is_enabled=False, then=Value(2)),  # not_enabled
+                default=Value(0),  # active
+                output_field=IntegerField(),
+            )
+        )
+
+
+class ActivityManager(models.Manager):
+    def get_queryset(self):
+        return ActivityQuerySet(self.model, using=self._db).with_status_order()
 
 
 class Activity(models.Model):
@@ -86,6 +106,8 @@ class Activity(models.Model):
     modified_at = models.DateTimeField(
         _("Modificação"), auto_now=True, null=True, blank=True
     )
+
+    objects = ActivityManager()
 
     def __str__(self):
         return self.title

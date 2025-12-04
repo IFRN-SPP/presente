@@ -16,7 +16,8 @@ class CoreTable(django_tables2.Table):
 class ActivityTable(CoreTable):
     status = django_tables2.Column(
         verbose_name=_("Status"),
-        orderable=False,
+        orderable=True,
+        order_by="status_order",
         empty_values=(),
     )
     tags_list = django_tables2.TemplateColumn(
