@@ -5,6 +5,20 @@
   <meta charset="UTF-8">
   <title>Relatório de Presenças - {{ activity.title }}</title>
   <style>
+    @font-face {
+      font-family: 'Source Sans 3';
+      src: url('file://{{ source_sans_regular_path }}') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Source Sans 3';
+      src: url('file://{{ source_sans_bold_path }}') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
     @page {
       size: A4;
       margin: 20mm 20mm 25mm 20mm;
@@ -13,7 +27,7 @@
         content: "{{ generated_at|date:'d/m/Y H:i' }}";
         font-size: 8pt;
         color: #666;
-        font-family: Arial, sans-serif;
+        font-family: 'Source Sans 3', sans-serif;
       }
 
       @bottom-center {
@@ -21,14 +35,14 @@
         font-size: 8pt;
         color: #333;
         font-weight: bold;
-        font-family: Arial, sans-serif;
+        font-family: 'Source Sans 3', sans-serif;
       }
 
       @bottom-right {
         content: "Página " counter(page) " de " counter(pages);
         font-size: 8pt;
         color: #666;
-        font-family: Arial, sans-serif;
+        font-family: 'Source Sans 3', sans-serif;
       }
     }
 
@@ -39,7 +53,7 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Source Sans 3', sans-serif;
       font-size: 10pt;
       line-height: 1.4;
       color: #000;
