@@ -322,20 +322,8 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
         return _("Presenças - {}").format(activity.title)
 
     def get_queryset(self):
-        from django.db import connection
-        from django.db.models import F
-
         activity = self.get_activity()
         qs = Attendance.objects.filter(activity=activity).select_related("user")
-
-        if connection.vendor == "postgresql":
-            from django.db.models.functions import Collate
-
-            qs = qs.annotate(user_name_collated=Collate("user__full_name", "pt_BR"))
-        else:
-            # SQLite: just alias the field for compatibility
-            qs = qs.annotate(user_name_collated=F("user__full_name"))
-
         return qs.order_by("-checked_in_at")
 
     def get_context_data(self, **kwargs):
