@@ -30,7 +30,7 @@ class ExcludeAdminMixin:
 
     def get_queryset(self):
         base_qs = super().get_queryset()
-        return base_qs.exclude(id=self.admin_id).order_by("id")
+        return base_qs.exclude(id=self.admin_id)
 
 
 class CustomPasswordResetFromKeyView(PasswordResetFromKeyView):

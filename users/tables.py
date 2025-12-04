@@ -8,7 +8,7 @@ class UserTable(CoreTable):
     full_name = tables.Column(
         verbose_name=_("Nome"),
         empty_values=(),
-        order_by="full_name",
+        order_by=("full_name_normalized", "full_name"),
     )
     matricula = tables.Column(verbose_name=_("Matrícula"), empty_values=())
     type = tables.Column(verbose_name=_("Tipo"), empty_values=())

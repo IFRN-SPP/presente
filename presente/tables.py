@@ -88,7 +88,7 @@ class ActivityAttendanceTable(django_tables2.Table):
         accessor="user",
         verbose_name=_("Nome"),
         orderable=True,
-        order_by="user__full_name",
+        order_by=("user__full_name_normalized", "user__full_name"),
     )
     user_type = django_tables2.Column(
         accessor="user__type",
