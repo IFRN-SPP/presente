@@ -41,7 +41,7 @@
   <div class="collapse {% if filters_active %}show{% endif %} mb-3" id="filterCollapse">
     <div class="card">
       <div class="card-body">
-        <form method="get" class="row g-3" hx-get="{{ request.path }}" hx-target="#table-wrapper" hx-push-url="true" hx-trigger="change delay:300ms, submit">
+        <form method="get" id="filter-form" class="row g-3" hx-get="{{ request.path }}" hx-target="#table-wrapper" hx-push-url="true" hx-trigger="change delay:300ms, submit">
           {% for field in filter.form %}
             {% if field.name != 'csrfmiddlewaretoken' %}
             <div class="col-md-4">

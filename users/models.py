@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
+import unicodedata
 
 
 class User(AbstractUser):
@@ -19,6 +20,14 @@ class User(AbstractUser):
         blank=True,
         null=True,
         help_text=_("Nome completo do usuário (usa nome social se disponível)"),
+    )
+    full_name_normalized = models.CharField(
+        _("Nome normalizado"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Nome sem acentos para ordenação"),
+        db_index=True,
     )
     type = models.CharField(
         _("Tipo"),
@@ -72,6 +81,18 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if not self.username:
             self.username = self.email
+
+        # Normalize full_name for sorting (remove accents and normalize case)
+        if self.full_name:
+            # NFD = Canonical Decomposition (separates base chars from accents)
+            nfd = unicodedata.normalize("NFD", self.full_name)
+            # Filter out combining characters (accents) and convert to uppercase
+            self.full_name_normalized = "".join(
+                char for char in nfd if unicodedata.category(char) != "Mn"
+            ).upper()
+        else:
+            self.full_name_normalized = None
+
         super().save(*args, **kwargs)
 
     @property

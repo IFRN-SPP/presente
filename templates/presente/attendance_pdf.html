@@ -196,7 +196,7 @@
     <strong>Total de Presenças:</strong> {{ total_attendances }}
   </div>
 
-  {% if filter.qs %}
+  {% if sorted_qs %}
   <table>
     <thead>
       <tr>
@@ -212,10 +212,10 @@
       </tr>
     </thead>
     <tbody>
-      {% for attendance in filter.qs %}
+      {% for attendance in sorted_qs %}
       <tr>
         {% if "number" in columns %}<td>{{ forloop.counter }}</td>{% endif %}
-        {% if "name" in columns %}<td>{{ attendance.user.get_full_name }}</td>{% endif %}
+        {% if "name" in columns %}<td>{{ attendance.user.get_full_name|upper }}</td>{% endif %}
         {% if "email" in columns %}<td>{{ attendance.user.email|default:"-" }}</td>{% endif %}
         {% if "matricula" in columns %}<td>{{ attendance.user.matricula|default:"-" }}</td>{% endif %}
         {% if "type" in columns %}<td>{{ attendance.user.get_type_display }}</td>{% endif %}

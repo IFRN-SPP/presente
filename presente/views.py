@@ -322,20 +322,8 @@ class ActivityAttendanceListView(ActivityOwnerMixin, CoreFilterView):
         return _("Presenças - {}").format(activity.title)
 
     def get_queryset(self):
-        from django.db import connection
-        from django.db.models import F
-
         activity = self.get_activity()
         qs = Attendance.objects.filter(activity=activity).select_related("user")
-
-        if connection.vendor == "postgresql":
-            from django.db.models.functions import Collate
-
-            qs = qs.annotate(user_name_collated=Collate("user__full_name", "pt_BR"))
-        else:
-            # SQLite: just alias the field for compatibility
-            qs = qs.annotate(user_name_collated=F("user__full_name"))
-
         return qs.order_by("-checked_in_at")
 
     def get_context_data(self, **kwargs):
@@ -415,6 +403,7 @@ class ActivityAttendancePDFView(
     template_name = "presente/attendance_pdf.html"
     context_object_name = "attendances"
     pdf_filename = "relatorio_presencas.pdf"
+    pdf_attachment = False  # Display inline in browser instead of downloading
 
     def get_pdf_filename(self):
         activity = self.get_activity()
@@ -434,8 +423,8 @@ class ActivityAttendancePDFView(
         if sort_by:
             # Map sort fields to actual model fields
             sort_mapping = {
-                "name": "user__full_name",
-                "-name": "-user__full_name",
+                "name": "user__full_name_normalized",
+                "-name": "-user__full_name_normalized",
                 "type": "user__type",
                 "-type": "-user__type",
                 "curso": "user__curso",
@@ -445,10 +434,10 @@ class ActivityAttendancePDFView(
                 "checked_in_at": "checked_in_at",
                 "-checked_in_at": "-checked_in_at",
             }
-            sort_field = sort_mapping.get(sort_by, "user__full_name")
+            sort_field = sort_mapping.get(sort_by, "user__full_name_normalized")
             qs = qs.order_by(sort_field)
         else:
-            qs = qs.order_by("user__full_name")
+            qs = qs.order_by("user__full_name_normalized")
 
         return qs
 
@@ -457,8 +446,27 @@ class ActivityAttendancePDFView(
         activity = self.get_activity()
         context["activity"] = activity
 
-        # Get the filtered queryset (after filters are applied)
-        filtered_qs = context["filter"].qs
+        # Get the filtered queryset (after filters are applied) and apply sorting
+        sort_by = self.request.GET.get("sort_by", "name")
+        sort_mapping = {
+            "name": "user__full_name_normalized",
+            "-name": "-user__full_name_normalized",
+            "type": "user__type",
+            "-type": "-user__type",
+            "curso": "user__curso",
+            "-curso": "-user__curso",
+            "periodo": "user__periodo_referencia",
+            "-periodo": "-user__periodo_referencia",
+            "checked_in_at": "checked_in_at",
+            "-checked_in_at": "-checked_in_at",
+        }
+        sort_field = sort_mapping.get(sort_by, "user__full_name_normalized")
+
+        # Apply sorting to the filtered queryset
+        filtered_qs = context["filter"].qs.order_by(sort_field)
+
+        # Store the sorted queryset for the template
+        context["sorted_qs"] = filtered_qs
         context["total_attendances"] = filtered_qs.count()
 
         # Get column configuration
@@ -511,8 +519,8 @@ class ActivityAttendanceCSVExportView(
         # Apply sorting
         sort_by = self.request.GET.get("sort_by", "name")
         sort_mapping = {
-            "name": "user__full_name",
-            "-name": "-user__full_name",
+            "name": "user__full_name_normalized",
+            "-name": "-user__full_name_normalized",
             "type": "user__type",
             "-type": "-user__type",
             "curso": "user__curso",
@@ -522,7 +530,7 @@ class ActivityAttendanceCSVExportView(
             "checked_in_at": "checked_in_at",
             "-checked_in_at": "-checked_in_at",
         }
-        sort_field = sort_mapping.get(sort_by, "user__full_name")
+        sort_field = sort_mapping.get(sort_by, "user__full_name_normalized")
         qs = qs.order_by(sort_field)
 
         return qs
@@ -531,6 +539,23 @@ class ActivityAttendanceCSVExportView(
         activity = self.get_activity()
         filterset = self.filterset_class(request.GET, queryset=self.get_queryset())
         queryset = filterset.qs
+
+        # Reapply sorting to ensure it's maintained after filtering
+        sort_by = request.GET.get("sort_by", "name")
+        sort_mapping = {
+            "name": "user__full_name_normalized",
+            "-name": "-user__full_name_normalized",
+            "type": "user__type",
+            "-type": "-user__type",
+            "curso": "user__curso",
+            "-curso": "-user__curso",
+            "periodo": "user__periodo_referencia",
+            "-periodo": "-user__periodo_referencia",
+            "checked_in_at": "checked_in_at",
+            "-checked_in_at": "-checked_in_at",
+        }
+        sort_field = sort_mapping.get(sort_by, "user__full_name_normalized")
+        queryset = queryset.order_by(sort_field)
 
         # Get column configuration
         columns = request.GET.getlist("columns")
@@ -578,7 +603,7 @@ class ActivityAttendanceCSVExportView(
             if "number" in columns:
                 row.append(idx)
             if "name" in columns:
-                row.append(attendance.user.get_full_name())
+                row.append(attendance.user.get_full_name().upper())
             if "email" in columns:
                 row.append(attendance.user.email or "-")
             if "matricula" in columns:

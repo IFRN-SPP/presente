@@ -11,9 +11,7 @@
 
     <!-- Preserve filter parameters -->
     {% for key, value in filter_params.items %}
-      {% if key not in "columns,sort_by" %}
       <input type="hidden" name="{{ key }}" value="{{ value }}">
-      {% endif %}
     {% endfor %}
 
     <div class="mb-4">
