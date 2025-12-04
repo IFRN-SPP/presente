@@ -65,32 +65,15 @@
   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
     <i class="bi bi-x-circle"></i> Cancelar
   </button>
-  <button type="button" class="btn btn-outline-success" onclick="downloadCSV()">
+  <button type="button" class="btn btn-outline-success" onclick="downloadCSV({{ activity.pk }}, '{% url 'presente:activity_attendance_csv' activity.pk %}')">
     <i class="bi bi-filetype-csv"></i> CSV
   </button>
-  <button type="button" class="btn btn-primary" onclick="downloadPDF()">
+  <button type="button" class="btn btn-primary" onclick="downloadPDF({{ activity.pk }}, '{% url 'presente:activity_attendance_pdf' activity.pk %}')">
     <i class="bi bi-file-earmark-pdf"></i> PDF
   </button>
 </div>
 
 <script>
-function downloadPDF() {
-  const form = document.getElementById('exportConfigForm');
-  const pdfUrl = "{% url 'presente:activity_attendance_pdf' activity.pk %}";
-
-  const formData = new FormData(form);
-  const params = new URLSearchParams(formData);
-
-  window.open(pdfUrl + '?' + params.toString(), '_blank');
-}
-
-function downloadCSV() {
-  const form = document.getElementById('exportConfigForm');
-  const csvUrl = "{% url 'presente:activity_attendance_csv' activity.pk %}";
-
-  const formData = new FormData(form);
-  const params = new URLSearchParams(formData);
-
-  window.location.href = csvUrl + '?' + params.toString();
-}
+  // Load preferences when modal content is loaded via HTMX
+  loadExportPreferences();
 </script>

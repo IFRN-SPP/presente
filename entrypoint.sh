@@ -13,7 +13,7 @@ echo "Running database migrations..."
 python manage.py migrate --noinput
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --clear --noinput
 
 echo "Setting socket directory permissions..."
 chmod 770 /run/sockets

@@ -157,3 +157,79 @@ function muteIpCheckbox() {
     restrictIpCheckbox.addEventListener('change', toggleAllowedNetworks);
   }
 }
+
+// Export modal functions
+function loadExportPreferences() {
+  const savedColumns = localStorage.getItem('export_columns');
+  const savedSort = localStorage.getItem('export_sort');
+
+  if (savedColumns) {
+    try {
+      const columns = JSON.parse(savedColumns);
+      // Uncheck all first
+      document.querySelectorAll('input[name="columns"]').forEach(cb => cb.checked = false);
+      // Check saved columns
+      columns.forEach(col => {
+        const checkbox = document.querySelector(`input[name="columns"][value="${col}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+    } catch (e) {
+      console.error('Error loading column preferences:', e);
+    }
+  }
+
+  if (savedSort) {
+    const sortSelect = document.getElementById('modal_sort_by');
+    if (sortSelect) sortSelect.value = savedSort;
+  }
+}
+
+function saveExportPreferences() {
+  const form = document.getElementById('exportConfigForm');
+  if (!form) return;
+
+  // Save selected columns
+  const columns = Array.from(form.querySelectorAll('input[name="columns"]:checked'))
+    .map(cb => cb.value);
+  localStorage.setItem('export_columns', JSON.stringify(columns));
+
+  // Save sort preference
+  const sortBy = form.querySelector('select[name="sort_by"]')?.value;
+  if (sortBy) {
+    localStorage.setItem('export_sort', sortBy);
+  }
+}
+
+function closeExportModal() {
+  const modalElement = document.querySelector('#modals-here');
+  if (modalElement) {
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+      modal.hide();
+    }
+  }
+}
+
+function downloadPDF(activityPk, pdfUrl) {
+  const form = document.getElementById('exportConfigForm');
+  if (!form) return;
+
+  const formData = new FormData(form);
+  const params = new URLSearchParams(formData);
+
+  saveExportPreferences();
+  window.open(pdfUrl + '?' + params.toString(), '_blank');
+  closeExportModal();
+}
+
+function downloadCSV(activityPk, csvUrl) {
+  const form = document.getElementById('exportConfigForm');
+  if (!form) return;
+
+  const formData = new FormData(form);
+  const params = new URLSearchParams(formData);
+
+  saveExportPreferences();
+  window.location.href = csvUrl + '?' + params.toString();
+  closeExportModal();
+}

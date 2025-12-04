@@ -495,11 +495,19 @@ class ActivityAttendancePDFView(
         context["filter_info"] = filter_info
         context["generated_at"] = timezone.now()
 
-        # Add absolute path to logo for WeasyPrint
+        # Add absolute paths for WeasyPrint
         logo_path = os.path.join(
             settings.BASE_DIR, "static", "img", "presente-icon.svg"
         )
         context["logo_path"] = logo_path
+
+        # Add font paths
+        context["source_sans_regular_path"] = os.path.join(
+            settings.BASE_DIR, "static", "fonts", "SourceSans3-Regular.ttf"
+        )
+        context["source_sans_bold_path"] = os.path.join(
+            settings.BASE_DIR, "static", "fonts", "SourceSans3-Bold.ttf"
+        )
 
         return context
 
