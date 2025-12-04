@@ -44,9 +44,24 @@ class UserListView(ExcludeAdminMixin, CoreFilterView):
     filterset_class = UserFilter
 
     def get_queryset(self):
+        from django.db import connection
+        from django.db.models import F
+
         queryset = super().get_queryset()
         # Prefetch social accounts to avoid N+1 queries when accessing matricula
-        return queryset.prefetch_related("socialaccount_set")
+        queryset = queryset.prefetch_related("socialaccount_set")
+
+        if connection.vendor == "postgresql":
+            from django.contrib.postgres.fields import Collate
+
+            queryset = queryset.annotate(
+                full_name_collated=Collate("full_name", "pt_BR")
+            )
+        else:
+            # SQLite: just alias the field for compatibility
+            queryset = queryset.annotate(full_name_collated=F("full_name"))
+
+        return queryset
 
 
 class UserCreateView(CoreCreateView):
