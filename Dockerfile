@@ -35,8 +35,15 @@ WORKDIR /app
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    # weasyprint dependencies
+    libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 \
+    locales \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
+
+RUN sed -i '/pt_BR.UTF-8/s/^# //g' /etc/locale.gen && \
+  locale-gen pt_BR.UTF-8 && \
+  update-locale LANG=pt_BR.UTF-8
 
 # Copy Python dependencies from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
