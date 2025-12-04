@@ -25,7 +25,7 @@ class CoreFilterView(
     FilterView,
 ):
     template_name = "core/list.html"
-    template_name_htmx = "core/includes/list_content.html"
+    template_name_htmx = "core/includes/table_content.html"
     permission_action = "view"
     paginate_by = None
     table_pagination = {"per_page": 10}

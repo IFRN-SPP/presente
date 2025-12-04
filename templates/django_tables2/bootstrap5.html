@@ -10,7 +10,7 @@
             {% for column in table.columns %}
                 {% if column.orderable %}
                 <th {{ column.attrs.th.as_html }}>
-                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" class="text-decoration-none text-body d-flex align-items-center justify-content-between" hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-target="#list-content" hx-push-url="true">
+                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" class="text-decoration-none text-body d-flex align-items-center justify-content-between" hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" hx-target="#table-wrapper" hx-push-url="true">
                         <span>{{ column.header }}</span>
                         {% if column.is_ordered %}
                             {% if column.order_by_alias.next == column.name %}
@@ -85,7 +85,7 @@
             <ul class="pagination pagination-sm mb-0">
                 {% if table.page.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-target="#list-content" hx-push-url="true">
+                        <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}" hx-target="#table-wrapper" hx-push-url="true">
                             &laquo;
                         </a>
                     </li>
@@ -102,14 +102,14 @@
                         </li>
                     {% elif p >= table.page.number|add:"-2" and p <= table.page.number|add:"2" %}
                         <li class="page-item">
-                            <a class="page-link" href="{% querystring table.prefixed_page_field=p %}" hx-get="{% querystring table.prefixed_page_field=p %}" hx-target="#list-content" hx-push-url="true">{{ p }}</a>
+                            <a class="page-link" href="{% querystring table.prefixed_page_field=p %}" hx-get="{% querystring table.prefixed_page_field=p %}" hx-target="#table-wrapper" hx-push-url="true">{{ p }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}
 
                 {% if table.page.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-target="#list-content" hx-push-url="true">
+                        <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}" hx-target="#table-wrapper" hx-push-url="true">
                             &raquo;
                         </a>
                     </li>

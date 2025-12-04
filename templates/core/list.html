@@ -14,7 +14,7 @@
 {% block app_content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
+    <div id="filter-button-wrapper">
       {% if filter %}
       {% has_active_filters filter as filters_active %}
       <button class="btn {% if filters_active %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" {% if filters_active %}aria-expanded="true"{% endif %}>
@@ -36,8 +36,41 @@
     </div>
   </div>
 
-  <div id="list-content">
-    {% include "core/includes/list_content.html" %}
+  {% if filter %}
+  {% has_active_filters filter as filters_active %}
+  <div class="collapse {% if filters_active %}show{% endif %} mb-3" id="filterCollapse">
+    <div class="card">
+      <div class="card-body">
+        <form method="get" class="row g-3" hx-get="{{ request.path }}" hx-target="#table-wrapper" hx-push-url="true" hx-trigger="change delay:300ms, submit">
+          {% for field in filter.form %}
+            {% if field.name != 'csrfmiddlewaretoken' %}
+            <div class="col-md-4">
+              <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ field.errors }}
+                </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search"></i> Filtrar
+            </button>
+            <a href="{{ request.path }}" class="btn btn-secondary" hx-get="{{ request.path }}" hx-target="#table-wrapper" hx-push-url="true" hx-on::after-request="const form = this.closest('form'); form.reset(); form.querySelectorAll('select').forEach(el => el.tomselect?.clear());">
+              <i class="bi bi-x-circle"></i> Limpar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div id="table-wrapper">
+    {% include "core/includes/table_content.html" %}
   </div>
 </div>
 {% endblock %}
