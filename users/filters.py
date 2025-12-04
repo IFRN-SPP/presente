@@ -14,14 +14,12 @@ class UserFilter(django_filters.FilterSet):
     type = django_filters.ChoiceFilter(
         choices=User.UserType.choices,
         label=_("Tipo"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     campus = django_filters.ChoiceFilter(
         label=_("Campus"),
-        choices=lambda: [("", "---------")]
-        + [
+        choices=lambda: [
             (campus, campus)
             for campus in User.objects.exclude(campus__isnull=True)
             .exclude(campus="")
@@ -29,14 +27,12 @@ class UserFilter(django_filters.FilterSet):
             .distinct()
             .order_by("campus")
         ],
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     curso = django_filters.ChoiceFilter(
         label=_("Curso"),
-        choices=lambda: [("", "---------")]
-        + [
+        choices=lambda: [
             (curso, curso)
             for curso in User.objects.exclude(curso__isnull=True)
             .exclude(curso="")
@@ -50,8 +46,7 @@ class UserFilter(django_filters.FilterSet):
     )
     periodo_referencia = django_filters.ChoiceFilter(
         label=_("Período"),
-        choices=lambda: [("", "---------")]
-        + [
+        choices=lambda: [
             (periodo, periodo)
             for periodo in User.objects.exclude(periodo_referencia__isnull=True)
             .exclude(periodo_referencia="")
@@ -59,9 +54,8 @@ class UserFilter(django_filters.FilterSet):
             .distinct()
             .order_by("periodo_referencia")
         ],
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     def filter_name(self, queryset, name, value):

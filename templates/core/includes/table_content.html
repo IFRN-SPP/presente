@@ -1,0 +1,22 @@
+{% load render_table from django_tables2 %}
+{% load filter_tags %}
+
+{% if request.htmx %}
+<div id="filter-button-wrapper" hx-swap-oob="true">
+  {% if filter %}
+  {% has_active_filters filter as filters_active %}
+  <button class="btn {% if filters_active %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" {% if filters_active %}aria-expanded="true"{% endif %}>
+    <i class="bi bi-funnel{% if filters_active %}-fill{% endif %}"></i> Filtros
+    {% if filters_active %}
+    <span class="badge bg-light text-dark ms-1">{{ filter.qs.count }}</span>
+    {% endif %}
+  </button>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body p-0">
+    {% render_table table %}
+  </div>
+</div>

@@ -10,7 +10,6 @@ User = get_user_model()
 
 class ActivityFilter(django_filters.FilterSet):
     STATUS_CHOICES = [
-        ("", "---------"),
         ("active", _("Ativa")),
         ("not_started", _("Não Iniciada")),
         ("expired", _("Encerrada")),
@@ -26,17 +25,15 @@ class ActivityFilter(django_filters.FilterSet):
         choices=STATUS_CHOICES,
         label=_("Status"),
         method="filter_status",
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     tags = django_filters.ModelChoiceFilter(
         queryset=Tag.objects.all(),
         label=_("Tags"),
         field_name="tags",
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     start_time__gte = django_filters.DateFilter(
         field_name="start_time",
@@ -89,9 +86,8 @@ class AttendanceFilter(django_filters.FilterSet):
         queryset=Tag.objects.all(),
         label=_("Tags"),
         field_name="activity__tags",
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     activity__start_time__gte = django_filters.DateFilter(
         field_name="activity__start_time",
@@ -125,15 +121,13 @@ class ActivityAttendanceFilter(django_filters.FilterSet):
     user__type = django_filters.ChoiceFilter(
         choices=User.UserType.choices,
         label=_("Tipo"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     user__campus = django_filters.ChoiceFilter(
         label=_("Campus"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     user__curso = django_filters.ChoiceFilter(
         label=_("Curso"),
@@ -143,9 +137,8 @@ class ActivityAttendanceFilter(django_filters.FilterSet):
     )
     user__periodo_referencia = django_filters.ChoiceFilter(
         label=_("Período de Referência"),
-        widget=forms.Select(
-            attrs={"class": "form-select", "data-tom-select": "simple"}
-        ),
+        empty_label="---------",
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -162,9 +155,7 @@ class ActivityAttendanceFilter(django_filters.FilterSet):
                 .distinct()
                 .order_by("user__campus")
             ]
-            self.filters["user__campus"].extra["choices"] = [
-                ("", "---------")
-            ] + campus_choices
+            self.filters["user__campus"].extra["choices"] = campus_choices
 
             # Curso choices
             curso_choices = [
@@ -175,9 +166,7 @@ class ActivityAttendanceFilter(django_filters.FilterSet):
                 .distinct()
                 .order_by("user__curso")
             ]
-            self.filters["user__curso"].extra["choices"] = [
-                ("", "---------")
-            ] + curso_choices
+            self.filters["user__curso"].extra["choices"] = curso_choices
 
             # Periodo_referencia choices
             periodo_choices = [
@@ -190,9 +179,7 @@ class ActivityAttendanceFilter(django_filters.FilterSet):
                 .distinct()
                 .order_by("user__periodo_referencia")
             ]
-            self.filters["user__periodo_referencia"].extra["choices"] = [
-                ("", "---------")
-            ] + periodo_choices
+            self.filters["user__periodo_referencia"].extra["choices"] = periodo_choices
 
     class Meta:
         model = Attendance

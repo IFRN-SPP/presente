@@ -25,12 +25,18 @@ class CoreFilterView(
     FilterView,
 ):
     template_name = "core/list.html"
+    template_name_htmx = "core/includes/table_content.html"
     permission_action = "view"
     paginate_by = None
     table_pagination = {"per_page": 10}
 
     def get_table_data(self):
         return self.object_list
+
+    def get_template_names(self):
+        if self.request.htmx:
+            return [self.template_name_htmx]
+        return [self.template_name]
 
 
 class CoreDetailView(
