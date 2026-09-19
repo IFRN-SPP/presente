@@ -10,6 +10,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: ghcr.io/ifrn-spp/presente:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
