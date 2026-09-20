@@ -193,6 +193,15 @@ else:
     STATIC_ROOT = os.getenv("STATIC_ROOT")
     MEDIA_ROOT = os.getenv("MEDIA_ROOT")
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
+
 
 # Default primary key field type
 
