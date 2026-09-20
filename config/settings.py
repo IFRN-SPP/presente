@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import tomllib
 from dotenv import load_dotenv, find_dotenv
 from django.contrib.messages import constants as messages
 
@@ -9,6 +10,15 @@ load_dotenv(find_dotenv())
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 BUILD_ENV = os.getenv("BUILD_ENV", default="local")
+
+with open(BASE_DIR / "pyproject.toml", "rb") as f:
+    APP_VERSION = tomllib.load(f)["project"]["version"]
+
+# Set at image build time (see Dockerfile / .github/workflows/main.yml); empty outside CI builds.
+GIT_SHA = os.getenv("GIT_SHA", "")[:7]
+
+# Which image tag this container was deployed from (set via compose.yaml); "dev" or "latest".
+IMAGE_TAG = os.getenv("IMAGE_TAG", "latest")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -81,6 +91,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "presente.context_processors.app_info",
             ],
         },
     },

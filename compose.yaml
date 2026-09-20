@@ -20,6 +20,8 @@ services:
       - ${SOCKET_DIR}:/run/sockets
     env_file:
       - .env
+    environment:
+      - IMAGE_TAG=${IMAGE_TAG:-latest}
     depends_on:
       - db
     restart: unless-stopped

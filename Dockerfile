@@ -53,6 +53,11 @@ RUN sed -i '/pt_BR.UTF-8/s/^# //g' /etc/locale.gen && \
 # Copy the virtual environment from builder
 COPY --from=builder /app/.venv /app/.venv
 
+# Changes every commit; placed here so it doesn't invalidate the apt-get/locale
+# layers above on every build.
+ARG GIT_SHA=""
+ENV GIT_SHA=${GIT_SHA}
+
 # Copy project
 COPY . /app/
 
