@@ -1,7 +1,8 @@
 /* Source Sans 3 - Self-hosted */
 @font-face {
   font-family: 'Source Sans 3';
-  src: url('../fonts/SourceSans3-Regular.ttf') format('truetype');
+  src: url('../fonts/SourceSans3-Regular.woff2') format('woff2'),
+       url('../fonts/SourceSans3-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -9,7 +10,8 @@
 
 @font-face {
   font-family: 'Source Sans 3';
-  src: url('../fonts/SourceSans3-It.ttf') format('truetype');
+  src: url('../fonts/SourceSans3-It.woff2') format('woff2'),
+       url('../fonts/SourceSans3-It.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -17,7 +19,8 @@
 
 @font-face {
   font-family: 'Source Sans 3';
-  src: url('../fonts/SourceSans3-Bold.ttf') format('truetype');
+  src: url('../fonts/SourceSans3-Bold.woff2') format('woff2'),
+       url('../fonts/SourceSans3-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -25,7 +28,8 @@
 
 @font-face {
   font-family: 'Source Sans 3';
-  src: url('../fonts/SourceSans3-BoldIt.ttf') format('truetype');
+  src: url('../fonts/SourceSans3-BoldIt.woff2') format('woff2'),
+       url('../fonts/SourceSans3-BoldIt.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
