@@ -1,0 +1,37 @@
+# Version control
+.git
+.github
+
+# Secrets / local data
+.env
+.env.example
+db.sqlite3
+
+# Local virtualenv
+venv
+.venv
+env
+ENV
+
+# Python artifacts
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# User-uploaded content (mounted as a volume at runtime)
+media
+
+# Editor / tooling
+.idea
+.vscode
+.pre-commit-config.yaml
+
+# Docs, not needed at runtime
+docs
+README.md
+LICENSE

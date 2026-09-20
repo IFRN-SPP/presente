@@ -96,13 +96,10 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER_DEV }} >> ~/.ssh/known_hosts
-      - name: Deploy code via rsync
+      - name: Sync compose.yaml to server
         run: |
-          rsync -az --delete \
-            --exclude=".git" \
-            --exclude=".github" \
-            --exclude=".env" \
-            ./ ${{ secrets.SERVER_USER_DEV }}@${{ secrets.SERVER_DEV }}:${{ secrets.LOCATION_DEV }}
+          rsync -az compose.yaml \
+            ${{ secrets.SERVER_USER_DEV }}@${{ secrets.SERVER_DEV }}:${{ secrets.LOCATION_DEV }}/compose.yaml
       - name: Pull image and restart Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER_DEV }}@${{ secrets.SERVER_DEV }} << 'EOF'
@@ -130,13 +127,10 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER }} >> ~/.ssh/known_hosts
-      - name: Deploy code via rsync
+      - name: Sync compose.yaml to server
         run: |
-          rsync -az --delete \
-            --exclude=".git" \
-            --exclude=".github" \
-            --exclude=".env" \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER }}:${{ secrets.LOCATION }}
+          rsync -az compose.yaml \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER }}:${{ secrets.LOCATION }}/compose.yaml
       - name: Pull image and restart Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER }} << 'EOF'
