@@ -67,12 +67,10 @@ O sistema utiliza a **API do SUAP** para:
    cd presente
    ```
 
-2. Configure o ambiente (Python/Django):
+2. Configure o ambiente (Python/Django), usando [uv](https://docs.astral.sh/uv/):
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+   uv sync
    ```
 
 3. Defina as variáveis de ambiente no arquivo `.env`, usando o arquivo `.env.example` como modelo:
@@ -87,8 +85,8 @@ O sistema utiliza a **API do SUAP** para:
 4. Execute as migrações e inicie o servidor:
 
    ```bash
-   python manage.py migrate
-   python manage.py runserver
+   uv run python manage.py migrate
+   uv run python manage.py runserver
    ```
 
 5. Acesse o sistema em: [http://localhost:8000](http://localhost:8000)

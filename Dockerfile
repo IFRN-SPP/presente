@@ -1,9 +1,12 @@
 # Build stage
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Set work directory
 WORKDIR /app
@@ -17,17 +20,19 @@ RUN apt-get update && apt-get install -y \
     pkg-config libcairo2-dev libpango1.0-dev libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements* /app/
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements-prod.txt
+COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /uvx /bin/
+
+# Install Python dependencies (cached unless pyproject.toml/uv.lock change)
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --frozen --no-dev --extra prod
 
 # Runtime stage
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Set work directory
 WORKDIR /app
@@ -45,9 +50,8 @@ RUN sed -i '/pt_BR.UTF-8/s/^# //g' /etc/locale.gen && \
   locale-gen pt_BR.UTF-8 && \
   update-locale LANG=pt_BR.UTF-8
 
-# Copy Python dependencies from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy the virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
 
 # Copy project
 COPY . /app/

@@ -1,3 +1,42 @@
+[project]
+name = "presente"
+version = "0.1.0"
+description = "Sistema open source para gerenciamento de presença em atividades extra-classe do IFRN."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "crispy-bootstrap5==2025.6",
+    "django==5.2.7",
+    "django-allauth==65.11.2",
+    "django-allauth-suap==0.1.3",
+    "django-crispy-forms==2.4",
+    "django-filter==25.2",
+    "django-htmx==1.26.0",
+    "django-simple-menu==2.1.4",
+    "django-tables2==2.7.5",
+    "django-taggit==6.1.0",
+    "django-tinymce==4.1.0",
+    "django-weasyprint==2.4.0",
+    "python-dotenv==1.1.1",
+    "qrcode==8.2",
+    "requests==2.32.5",
+    "weasyprint==67.0",
+]
+
+[project.optional-dependencies]
+prod = [
+    "django-redis==5.4.0",
+    "gunicorn==23.0.0",
+    "psycopg[c]==3.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit==4.3.0",
+    "ruff==0.13.3",
+]
+
+[tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
     "**/migrations/*",
@@ -34,10 +73,9 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.8
-target-version = "py38"
+target-version = "py311"
 
-[lint]
+[tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = ["E4", "E7", "E9", "F"]
 ignore = []
@@ -49,7 +87,7 @@ unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-[format]
+[tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
 
