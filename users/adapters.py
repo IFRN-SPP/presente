@@ -49,10 +49,20 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         return user
 
+    def pre_social_login(self, request, sociallogin):
+        # Runs on every SUAP login, unlike save_user (signup only). This is
+        # what keeps avatar/name/campus/type in sync for returning users.
+        if sociallogin.is_existing:
+            self._sync_user_from_suap(sociallogin.user, sociallogin)
+            sociallogin.user.save()
+
     def save_user(self, request, sociallogin, form=None):
         user = super().save_user(request, sociallogin, form)
+        self._sync_user_from_suap(user, sociallogin)
+        user.save()
+        return user
 
-        # Update user data from SUAP on every login
+    def _sync_user_from_suap(self, user, sociallogin):
         extra_data = sociallogin.account.extra_data
 
         # Update email (in case it changed)
@@ -118,9 +128,6 @@ class SuapSocialAccountAdapter(DefaultSocialAccountAdapter):
             # Clear student data if user is not ALUNO anymore
             user.curso = ""
             user.periodo_referencia = ""
-
-        user.save()
-        return user
 
     def is_open_for_signup(self, request, sociallogin):
         return settings.OPEN_FOR_SIGNUP or False
