@@ -1,5 +1,29 @@
+from django import forms
 from django.contrib import admin
-from .models import Activity, Attendance, Network
+from .services import TrilhaService
+from .models import (
+    Activity,
+    Attendance,
+    Network,
+    TipoGamificacao,
+    TrilhaGamificacao,
+    InscricaoTrilha,
+    Gamificacao,
+    UsuarioGamificacao,
+    Evento,
+    Campus,
+    Area,
+    MarcosDiversidade,
+    Nivel,
+    PerfilGamificado,
+    PointHistory,
+    Brinde,
+    Troca,
+    ItemRecompensa,
+    Missao,
+    MissaoProgresso,
+    Conquista
+)
 
 
 @admin.register(Network)
@@ -15,12 +39,7 @@ class NetworkAdmin(admin.ModelAdmin):
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = [
-        "title",
-        "start_time",
-        "end_time",
-        "qr_timeout",
-    ]
+    list_display = ["title", "start_time", "end_time", "qr_timeout"]
     list_filter = ["tags"]
     search_fields = ["title"]
     date_hierarchy = "start_time"
@@ -55,3 +74,167 @@ class AttendanceAdmin(admin.ModelAdmin):
         return obj.ip_address
 
     network_display.short_description = "Rede"
+
+
+class TrilhaAdminForm(forms.ModelForm):
+    pontos_bonus = forms.IntegerField(
+        label="Pontos do baú (bônus)",
+        min_value=1,
+        help_text="Recompensa de quem completar a trilha. Sugestão: 10 pts por atividade exigida.",
+    )
+    tipo_bonus = forms.ChoiceField(
+        label="Prêmio",
+        choices=TipoGamificacao.Tipo.choices,
+        initial=TipoGamificacao.Tipo.TROFEU,
+    )
+
+    class Meta:
+        model = TrilhaGamificacao
+        fields = ["name", "descricao", "evento", "minimo_atividades"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        bonus = self.instance.gamificacao_bonus if self.instance.pk else None
+        if bonus:
+            self.fields["pontos_bonus"].initial = bonus.pontos
+            if bonus.tipo_id:
+                self.fields["tipo_bonus"].initial = bonus.tipo.tipo
+        else:
+            minimo = self.instance.minimo_atividades if self.instance.pk else 1
+            self.fields["pontos_bonus"].initial = TrilhaService.bonus_sugerido(minimo)
+
+
+@admin.register(TrilhaGamificacao)
+class TrilhaGamificacaoAdmin(admin.ModelAdmin):
+    form = TrilhaAdminForm
+    list_display = ("name", "evento", "minimo_atividades", "pontos_do_bau")
+    list_filter = ("evento",)
+    search_fields = ("name",)
+
+    @admin.display(description="Baú")
+    def pontos_do_bau(self, obj):
+        return f"+{obj.gamificacao_bonus.pontos} pts" if obj.gamificacao_bonus_id else "—"
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        TrilhaService.definir_bonus(
+            obj, form.cleaned_data["pontos_bonus"], form.cleaned_data["tipo_bonus"]
+        )
+
+
+@admin.register(InscricaoTrilha)
+class InscricaoTrilhaAdmin(admin.ModelAdmin):
+    list_display = ("user", "trilha", "criado_em")
+    list_filter = ("trilha__evento", "trilha")
+    search_fields = ("user__username", "trilha__name")
+
+
+@admin.register(TipoGamificacao)
+class TipoGamificacaoAdmin(admin.ModelAdmin):
+    list_display = ("tipo", "trilha")
+    list_filter = ("tipo", "trilha")
+
+
+@admin.register(Gamificacao)
+class GamificacaoAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "trilha", "tipo", "pontos")
+    list_filter = ("trilha", "tipo")
+    search_fields = ("titulo",)
+
+
+@admin.register(UsuarioGamificacao)
+class UsuarioGamificacaoAdmin(admin.ModelAdmin):
+    list_display = ("user", "gamificacao", "data_concedida")
+    list_filter = ("gamificacao", "data_concedida")
+    search_fields = ("user__username", "gamificacao__titulo")
+
+    def pontos(self, obj):
+        return obj.gamificacao.pontos
+
+    pontos.short_description = "Pontos"
+
+
+@admin.register(Evento)
+class EventoAdmin(admin.ModelAdmin):
+    list_display = ("nome", "tipo", "data_inicio", "data_fim")
+    list_filter = ("tipo", "campus")
+    search_fields = ("nome",)
+
+
+admin.site.register(Campus)
+
+
+@admin.register(Area)
+class AreaAdmin(admin.ModelAdmin):
+    list_display = ["nome", "descricao"]
+    search_fields = ["nome"]
+
+
+@admin.register(MarcosDiversidade)
+class MarcosDiversidadeAdmin(admin.ModelAdmin):
+    list_display = ["areas_necessarias", "gamificacao_bonus", "descricao"]
+    ordering = ["areas_necessarias"]
+
+
+@admin.register(Nivel)
+class NivelAdmin(admin.ModelAdmin):
+    list_display = ("nome", "pontos_minimos")
+
+
+@admin.register(PerfilGamificado)
+class PerfilGamificadoAdmin(admin.ModelAdmin):
+    list_display = ("user", "nivel", "titulo")
+
+
+@admin.register(PointHistory)
+class PointHistoryAdmin(admin.ModelAdmin):
+    list_display = ["user", "tipo", "pontos", "gamificacao", "motivo", "criado_em"]
+    list_filter = ["tipo", "criado_em"]
+    search_fields = ["user__username", "motivo"]
+    readonly_fields = ["user", "gamificacao", "tipo", "pontos", "motivo", "criado_em"]
+    date_hierarchy = "criado_em"
+
+
+@admin.register(Brinde)
+class BrindeAdmin(admin.ModelAdmin):
+    list_display = ["nome", "evento", "pontos_necessarios", "quantidade_disponivel", "data_validade", "ativo", "disponivel"]
+    list_filter = ["ativo", "evento"]
+    search_fields = ["nome"]
+
+
+class ItemRecompensaInline(admin.TabularInline):
+    model = ItemRecompensa
+    extra = 0
+    readonly_fields = ["brinde", "quantidade", "pontos_unitarios", "pontos_total"]
+    can_delete = False
+
+
+@admin.register(Troca)
+class TrocaAdmin(admin.ModelAdmin):
+    list_display = ["id", "usuario", "pontos_gastos", "data", "total_itens"]
+    list_filter = ["data"]
+    search_fields = ["usuario__username"]
+    readonly_fields = ["usuario", "pontos_gastos", "data"]
+    inlines = [ItemRecompensaInline]
+
+    def total_itens(self, obj):
+        return obj.itens.count()
+
+    total_itens.short_description = "Itens"
+@admin.register(Missao)
+class MissaoAdmin(admin.ModelAdmin):
+    list_display = ["titulo", "tipo", "meta", "gamificacao", "ativa", "data_inicio", "data_fim"]
+    list_filter = ["tipo", "ativa"]
+    search_fields = ["titulo"]
+
+
+@admin.register(MissaoProgresso)
+class MissaoProgressoAdmin(admin.ModelAdmin):
+    list_display = ["user", "missao", "progresso", "concluida_em"]
+    list_filter = ["missao", "concluida_em"]
+    search_fields = ["user__username", "missao__titulo"]
+    readonly_fields = ["user", "missao", "progresso", "concluida_em"]
+
+@admin.register(Conquista)
+class ConquistaAdmin(admin.ModelAdmin):
+    list_display = ["nome", "descricao", "icone", "pontos", "status"]

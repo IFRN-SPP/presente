@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView
-from django.contrib.auth import get_user_model
+from django.contrib.    auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -21,8 +21,9 @@ from core.views import (
 )
 from .tables import UserTable
 from .filters import UserFilter
+from presente.models import UsuarioGamificacao, ConquistaUsuario
 
-User = get_user_model()
+User = get_user_model() 
 
 
 class ExcludeAdminMixin:
@@ -88,11 +89,13 @@ class UserProfileView(LoginRequiredMixin, PageTitleMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Prefetch social accounts for the current user
-        user = User.objects.prefetch_related("socialaccount_set").get(
-            pk=self.request.user.pk
-        )
+
+        user = User.objects.prefetch_related("socialaccount_set").get(pk=self.request.user.pk)
         context["user"] = user
+        context["total_conquistas"] = ConquistaUsuario.objects.filter(user=user).count()
+        context["total_premiacoes"] = UsuarioGamificacao.objects.filter(
+            user=user, gamificacao__tipo__isnull=False
+        ).count()
         return context
 
 

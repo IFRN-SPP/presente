@@ -8,6 +8,7 @@ Menu.add_item(
         reverse("presente:index"),
         icon="bi bi-house-fill",
         exact_url=reverse("presente:index"),
+        weight=1,  # controla a ordem,
     ),
 )
 
@@ -17,6 +18,7 @@ Menu.add_item(
         "Minhas Presenças",
         reverse("presente:my_attendances"),
         icon="bi bi-check2-circle",
+        weight=2,  # controla a ordem
     ),
 )
 
@@ -26,10 +28,77 @@ Menu.add_item(
         "Minhas Atividades",
         reverse("presente:activity_list"),
         icon="bi bi-list-check",
-        check=lambda r: r.user.has_perm("presente.view_activity"),
+        check=lambda r: r.user.is_authenticated,
+        weight=3,  # controla a ordem
+    )
+)
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Minhas Pontuações",
+        reverse("presente:minhas_pontuacoes"),
+        icon="bi bi-star",
+        check=lambda r: r.user.is_authenticated,
+        weight=4,  # controla a ordem
     ),
 )
 
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Trilhas",
+        reverse("presente:trilhas"),
+        icon="bi bi-signpost-split",
+        check=lambda r: r.user.is_authenticated,
+        weight=4,
+    ),
+)
+
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Conquistas",
+        reverse("presente:conquistas"),
+        icon="bi bi-award",
+        check=lambda r: r.user.is_authenticated,
+        weight=4,
+    ),
+)
+
+Menu.add_item("presente",
+    MenuItem(
+        "Ranking",
+        reverse("presente:ranking"),
+        icon="bi bi-trophy",
+        weight=5  # controla a ordem
+    )
+)
+Menu.add_item("presente",
+    MenuItem(
+        "Loja",
+        reverse("presente:loja"),
+        icon="bi bi-cart3",
+        weight=6  # controla a ordem
+    )
+)
+Menu.add_item("presente",
+    MenuItem(
+        "Meus Brindes",
+        reverse("presente:minhas_recompensas"),
+        icon="bi bi-gift",
+        weight=6  # controla a ordem
+    )
+)
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Como funciona",
+        reverse("presente:como_funciona"),
+        icon="bi bi-question-circle",
+        check=lambda r: r.user.is_authenticated,
+        weight=7,
+    ),
+)
 # ADMINISTRAÇÃO section starts here (items below appear under "ADMINISTRAÇÃO" header)
 
 Menu.add_item(
@@ -38,7 +107,8 @@ Menu.add_item(
         "Atividades",
         reverse("presente:admin_activities"),
         icon="bi bi-list-check",
-        check=lambda r: r.user.is_superuser,
+        check=lambda r: r.user.is_superuser or r.user.is_staff,
+        weight=10
     ),
 )
 
@@ -48,7 +118,8 @@ Menu.add_item(
         "Usuários",
         reverse("users:user_list"),
         icon="bi bi-person",
-        check=lambda r: r.user.is_superuser,
+        check=lambda r: r.user.is_superuser or r.user.is_staff,
+        weight=11
     ),
 )
 
@@ -58,6 +129,39 @@ Menu.add_item(
         "Redes",
         reverse("presente:network_list"),
         icon="bi bi-hdd-network",
-        check=lambda r: r.user.is_superuser,
+        check=lambda r: r.user.is_superuser or r.user.is_staff,
+        weight=12
+    ),
+)
+Menu.add_item(
+    "presente",
+    MenuItem(
+            "Eventos",
+            reverse("presente:evento_list"),
+            icon="bi bi-calendar-event",
+            weight=13,  # maior para cair depois da linha de ADMINISTRAÇÃO
+            check=lambda r: r.user.is_superuser or r.user.is_staff,   
+    ),     
+)
+
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Gerenciar Conquistas",
+        reverse("presente:conquista_list"),
+        icon="bi bi-patch-check-fill",
+        weight=15,
+        check=lambda r: r.user.is_superuser or r.user.is_staff,
+    ),
+)
+
+Menu.add_item(
+    "presente",
+    MenuItem(
+        "Recompensas",
+        reverse("presente:admin_brindes"),
+        icon="bi bi-gift",
+        weight=14,
+        check=lambda r: r.user.is_superuser or r.user.is_staff,
     ),
 )

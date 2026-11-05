@@ -1,7 +1,8 @@
 import django_tables2
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
-from .models import Activity, Attendance, Network
+from django.utils.html import format_html
+from .models import Activity, Attendance, Network,Evento,Brinde,Conquista
 
 
 class CoreTable(django_tables2.Table):
@@ -27,6 +28,11 @@ class ActivityTable(CoreTable):
         order_by="tags__name",
         exclude_from_export=True,
     )
+    evento = django_tables2.Column(
+    verbose_name=_("Evento"),
+    accessor="evento",
+    orderable=True,
+)
 
     def render_status(self, record):
         status_map = {
@@ -39,7 +45,7 @@ class ActivityTable(CoreTable):
 
     class Meta:
         model = Activity
-        fields = ("title", "tags_list", "start_time", "end_time", "status")
+        fields = ("title", "evento", "tags_list", "start_time", "end_time", "status")
 
 
 class AttendanceTable(django_tables2.Table):
@@ -143,3 +149,78 @@ class NetworkTable(CoreTable):
         model = Network
         fields = ("name", "description", "is_active")
         attrs = {"class": "table table-striped"}
+class EventoTable(django_tables2.Table):
+    atividades = django_tables2.TemplateColumn(
+    template_code="""
+        <a href="{% url 'presente:evento-atividades' record.pk %}"
+           class="btn btn-sm btn-outline-primary">
+           Ver Atividades
+        </a>
+    """,
+    verbose_name="Atividades",
+    orderable=False,
+)
+    class Meta:
+        model = Evento
+        fields = ("nome", "tipo", "data_inicio", "data_fim","atividades")
+
+class ConquistaTable(CoreTable):
+    status = django_tables2.Column(verbose_name=_("Ativo"), orderable=True)
+
+    def render_status(self, record):
+        if record.status:
+            return mark_safe('<span class="badge bg-success">Ativo</span>')
+        return mark_safe('<span class="badge bg-secondary">Inativo</span>')
+
+    class Meta:
+        model = Conquista
+        fields = ("nome", "tipo_regra", "valor_necessario", "pontos", "status")
+        attrs = {"class": "table table-striped"}
+
+
+# tables.py
+
+class BrindeTable(CoreTable):
+    imagem = django_tables2.Column(
+        verbose_name=_("Imagem"),
+        orderable=False,
+        empty_values=(),
+        exclude_from_export=True,
+    )
+    ativo = django_tables2.Column(verbose_name=_("Ativo"), orderable=True)
+    disponivel = django_tables2.Column(verbose_name=_("Disponível"), orderable=False, empty_values=())
+
+    def render_imagem(self, record):
+        if not record.imagem:
+            return "-"
+        return format_html(
+            '<img src="{}" alt="{}" style="width: 40px; height: 40px; object-fit: cover;" class="rounded">',
+            record.imagem.url,
+            record.nome,
+        )
+
+    def render_ativo(self, record):
+        if record.ativo:
+            return mark_safe('<span class="badge bg-success">Ativo</span>')
+        return mark_safe('<span class="badge bg-secondary">Inativo</span>')
+
+    def render_disponivel(self, record):
+        if record.disponivel:
+            return mark_safe('<span class="badge bg-success"><i class="bi bi-check-circle"></i> Disponível</span>')
+        if not record.ativo:
+            return mark_safe('<span class="badge bg-secondary">Inativo</span>')
+        if record.quantidade_disponivel <= 0:
+            return mark_safe('<span class="badge bg-danger"><i class="bi bi-box-seam"></i> Sem estoque</span>')
+        return mark_safe('<span class="badge bg-warning text-dark"><i class="bi bi-calendar-x"></i> Expirado</span>')
+
+    class Meta:
+        model = Brinde
+        fields = [
+            "imagem",
+            "nome",
+            "evento",
+            "pontos_necessarios",
+            "quantidade_disponivel",
+            "ativo",
+            "disponivel",
+        ]

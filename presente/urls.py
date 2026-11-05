@@ -14,6 +14,22 @@ urlpatterns = [
     path(
         "activity/<int:pk>/", views.ActivityDetailView.as_view(), name="activity_view"
     ),
+    path("admin/admin-brindes/", views.AdminBrindesView.as_view(), name="admin_brindes"),
+    path("admin/brindes/add/", views.BrindeCreateView.as_view(), name="brinde_add"),
+    path("admin/brindes/<int:pk>/", views.BrindeDetailView.as_view(), name="brinde_view"),
+    path("admin/brindes/<int:pk>/update/", views.BrindeUpdateView.as_view(), name="brinde_change"),
+    path("admin/brindes/<int:pk>/delete/", views.BrindeDeleteView.as_view(), name="brinde_delete"),
+    path("minhas-pontuacoes/", views.minhas_pontuacoes, name="minhas_pontuacoes"),
+    path("conquistas/", views.ConquistasView.as_view(), name="conquistas"),
+    path("como-funciona/", views.ComoFuncionaView.as_view(), name="como_funciona"),
+    path("trilhas/", views.TrilhasView.as_view(), name="trilhas"),
+    path("trilhas/<int:pk>/inscrever/", views.TrilhaInscreverView.as_view(), name="trilha_inscrever"),
+    path("trilhas/<int:pk>/sair/", views.TrilhaSairView.as_view(), name="trilha_sair"),
+    path("trilhas/<int:pk>/abrir-bau/", views.TrilhaAbrirBauView.as_view(), name="trilha_abrir_bau"),
+ 
+    path("ranking/", views.RankingListView.as_view(), name="ranking"),
+    path("eventos/<int:evento_pk>/ranking/", views.RankingListView.as_view(), name="ranking"),
+
     path(
         "activity/<int:pk>/update/",
         views.ActivityUpdateView.as_view(),
@@ -49,6 +65,11 @@ urlpatterns = [
         views.AttendanceDeleteView.as_view(),
         name="attendance_delete",
     ),
+    path(
+        "eventos/<int:evento_pk>/atividades/",
+        views.EventoActivityListView.as_view(),
+        name="evento-atividades",
+    ),
     # Network CRUD URLs
     path("network/", views.NetworkListView.as_view(), name="network_list"),
     path("network/add", views.NetworkCreateView.as_view(), name="network_add"),
@@ -63,6 +84,18 @@ urlpatterns = [
         views.NetworkDeleteView.as_view(),
         name="network_delete",
     ),
+    # Evento CRUD URLs
+    path("evento/", views.EventoListView.as_view(), name="evento_list"),
+    path("evento/add", views.EventoCreateView.as_view(), name="evento_add"),
+    path("evento/<int:pk>/", views.EventoDetailView.as_view(), name="evento_view"),
+    path("evento/<int:pk>/update/", views.EventoUpdateView.as_view(), name="evento_change"),
+    path("evento/<int:pk>/delete/", views.EventoDeleteView.as_view(), name="evento_delete"),
+    # Conquista CRUD URLs
+    path("admin/conquistas/", views.ConquistaListView.as_view(), name="conquista_list"),
+    path("admin/conquistas/add/", views.ConquistaCreateView.as_view(), name="conquista_add"),
+    path("admin/conquistas/<int:pk>/", views.ConquistaDetailView.as_view(), name="conquista_view"),
+    path("admin/conquistas/<int:pk>/update/", views.ConquistaUpdateView.as_view(), name="conquista_change"),
+    path("admin/conquistas/<int:pk>/delete/", views.ConquistaDeleteView.as_view(), name="conquista_delete"),
     # User attendances
     path("my-attendances/", views.MyAttendancesView.as_view(), name="my_attendances"),
     # Public attendance URLs
@@ -75,4 +108,13 @@ urlpatterns = [
         "a/<str:encoded_id>/qr/", views.ActivityQRCodeView.as_view(), name="activity_qr"
     ),
     path("checkin/<str:token>/", views.CheckInView.as_view(), name="checkin"),
+        # Loja de Brindes
+    path("loja/", views.LojaView.as_view(), name="loja"),
+    path("loja/carrinho/adicionar/", views.CarrinhoAdicionarView.as_view(), name="carrinho_adicionar"),
+    path("loja/carrinho/remover/<int:brinde_pk>/", views.CarrinhoRemoverView.as_view(), name="carrinho_remover"),
+    path("loja/confirmar/", views.TrocaConfirmarView.as_view(), name="troca_confirmar"),
+    path("loja/historico/", views.MinhasRecompensasView.as_view(), name="troca_historico"),
+    path("minhas-recompensas/", views.MinhasRecompensasView.as_view(), name="minhas_recompensas"),
+    path("minhas-trilhas/", views.MinhasTrilhasView.as_view(), name="minhas_trilhas"),
+    path("minhas-missoes/", views.MinhasMissoesView.as_view(), name="minhas_missoes"),
 ]
